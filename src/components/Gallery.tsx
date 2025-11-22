@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
@@ -103,6 +104,18 @@ export default function Gallery() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [selectedIndex, handleNext, handlePrev]);
 
+  // Lock body scroll when modal is open
+  useEffect(() => {
+    if (selectedIndex !== null) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [selectedIndex]);
+
   return (
     <div className="p-4 md:p-8">
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mx-auto max-w-7xl">
@@ -116,64 +129,67 @@ export default function Gallery() {
         ))}
       </div>
 
-      <AnimatePresence>
-        {selectedIndex !== null && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-white/60 p-4 backdrop-blur-xl"
-            onClick={() => setSelectedIndex(null)}
-          >
-            {/* Close button */}
-            <button
-              onClick={() => setSelectedIndex(null)}
-              className="absolute top-6 right-6 z-50 p-2 text-slate-500 hover:text-slate-900 transition-colors"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-
-            {/* Navigation buttons */}
-            <button
-              onClick={(e) => { e.stopPropagation(); handlePrev(); }}
-              className="absolute left-4 z-50 p-4 text-slate-500 hover:text-slate-900 transition-colors hidden md:block"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-10 h-10">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
-              </svg>
-            </button>
-            <button
-              onClick={(e) => { e.stopPropagation(); handleNext(); }}
-              className="absolute right-4 z-50 p-4 text-slate-500 hover:text-slate-900 transition-colors hidden md:block"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-10 h-10">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-              </svg>
-            </button>
-
+      {typeof window !== 'undefined' && createPortal(
+        <AnimatePresence>
+          {selectedIndex !== null && (
             <motion.div
-              key={selectedIndex}
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              className="relative max-h-[90vh] max-w-[90vw] overflow-hidden rounded-2xl shadow-2xl ring-1 ring-white/50"
-              onClick={(e) => e.stopPropagation()}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[9999] bg-white/60 backdrop-blur-xl"
+              onClick={() => setSelectedIndex(null)}
             >
-              <img
-                src={images[selectedIndex]}
-                alt="Selected gallery image"
-                className="max-h-[85vh] w-auto object-contain"
-              />
-              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-white/90 to-transparent p-6 text-center">
-                <p className="text-slate-900 font-medium">Image {selectedIndex + 1} of {images.length}</p>
-              </div>
+              {/* Close button */}
+              <button
+                onClick={() => setSelectedIndex(null)}
+                className="absolute top-6 right-6 z-50 p-2 text-slate-500 hover:text-slate-900 transition-colors"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+
+              {/* Navigation buttons */}
+              <button
+                onClick={(e) => { e.stopPropagation(); handlePrev(); }}
+                className="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 z-50 p-2 md:p-4 text-slate-600 hover:text-slate-900 transition-all bg-white/90 backdrop-blur-sm rounded-full shadow-lg hover:shadow-xl hover:scale-110"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6 md:w-8 md:h-8">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+                </svg>
+              </button>
+              <button
+                onClick={(e) => { e.stopPropagation(); handleNext(); }}
+                className="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 z-50 p-2 md:p-4 text-slate-600 hover:text-slate-900 transition-all bg-white/90 backdrop-blur-sm rounded-full shadow-lg hover:shadow-xl hover:scale-110"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6 md:w-8 md:h-8">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                </svg>
+              </button>
+
+              <motion.div
+                key={selectedIndex}
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ type: "spring", damping: 25, stiffness: 300 }}
+                className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 max-h-[90vh] max-w-[90vw] overflow-hidden rounded-2xl shadow-2xl ring-1 ring-white/50"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <img
+                  src={images[selectedIndex]}
+                  alt="Selected gallery image"
+                  className="max-h-[85vh] w-auto object-contain"
+                />
+                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-white/90 to-transparent p-6 text-center">
+                  <p className="text-slate-900 font-medium">Image {selectedIndex + 1} of {images.length}</p>
+                </div>
+              </motion.div>
             </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
     </div>
   );
 }

@@ -5,6 +5,39 @@ import { galleryImages } from "../utils/images";
 
 const images = galleryImages;
 
+// Smart pagination: show limited dots with current position
+function getPaginationDots(currentIndex: number, totalImages: number, maxDots: number = 7) {
+  if (totalImages <= maxDots) {
+    return Array.from({ length: totalImages }, (_, i) => i);
+  }
+
+  const dots: (number | 'ellipsis')[] = [];
+  const halfMax = Math.floor(maxDots / 2);
+
+  if (currentIndex <= halfMax) {
+    // Near the start
+    for (let i = 0; i < maxDots - 1; i++) {
+      dots.push(i);
+    }
+    dots.push('ellipsis');
+  } else if (currentIndex >= totalImages - halfMax - 1) {
+    // Near the end
+    dots.push('ellipsis');
+    for (let i = totalImages - maxDots + 1; i < totalImages; i++) {
+      dots.push(i);
+    }
+  } else {
+    // In the middle
+    dots.push('ellipsis');
+    for (let i = currentIndex - halfMax + 1; i <= currentIndex + halfMax - 1; i++) {
+      dots.push(i);
+    }
+    dots.push('ellipsis');
+  }
+
+  return dots;
+}
+
 export default function HeroCarousel() {
   const [currentIndex, setCurrentIndex] = useState(0);
 
@@ -14,6 +47,16 @@ export default function HeroCarousel() {
     }, 5000);
     return () => clearInterval(timer);
   }, []);
+
+  const handlePrev = () => {
+    setCurrentIndex((prev) => (prev - 1 + images.length) % images.length);
+  };
+
+  const handleNext = () => {
+    setCurrentIndex((prev) => (prev + 1) % images.length);
+  };
+
+  const paginationDots = getPaginationDots(currentIndex, images.length);
 
   return (
     <div className="relative h-[70vh] w-full overflow-hidden">
@@ -54,19 +97,50 @@ export default function HeroCarousel() {
         </motion.p>
       </div>
 
-      <div className="absolute bottom-24 left-1/2 -translate-x-1/2 flex space-x-2 z-20">
-        {images.map((_, index) => (
-          <button
-            key={index}
-            onClick={() => setCurrentIndex(index)}
-            className={`w-2 h-2 rounded-full transition-all duration-300 ${
-              index === currentIndex
-                ? "bg-white w-8"
-                : "bg-white/30 hover:bg-white/50"
-            }`}
-            aria-label={`Go to slide ${index + 1}`}
-          />
-        ))}
+      {/* Navigation Buttons */}
+      <button
+        onClick={handlePrev}
+        className="absolute left-4 md:left-8 top-1/2 -translate-y-1/2 z-20 p-4 md:p-6 text-white hover:text-white transition-all bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-full shadow-xl hover:shadow-2xl hover:scale-110"
+        aria-label="Previous slide"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor" className="w-8 h-8 md:w-10 md:h-10">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+        </svg>
+      </button>
+      <button
+        onClick={handleNext}
+        className="absolute right-4 md:right-8 top-1/2 -translate-y-1/2 z-20 p-4 md:p-6 text-white hover:text-white transition-all bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-full shadow-xl hover:shadow-2xl hover:scale-110"
+        aria-label="Next slide"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor" className="w-8 h-8 md:w-10 md:h-10">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+        </svg>
+      </button>
+
+      {/* Smart Pagination Dots */}
+      <div className="absolute bottom-24 left-1/2 -translate-x-1/2 flex items-center space-x-3 z-20">
+        {paginationDots.map((item, idx) => {
+          if (item === 'ellipsis') {
+            return (
+              <div key={`ellipsis-${idx}`} className="text-white/70 text-base font-bold px-2">
+                •••
+              </div>
+            );
+          }
+          
+          return (
+            <button
+              key={item}
+              onClick={() => setCurrentIndex(item)}
+              className={`rounded-full transition-all duration-300 ${
+                item === currentIndex
+                  ? "bg-white w-12 h-3"
+                  : "bg-white/40 hover:bg-white/60 w-3 h-3"
+              }`}
+              aria-label={`Go to slide ${item + 1}`}
+            />
+          );
+        })}
       </div>
     </div>
   );
