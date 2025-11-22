@@ -2,18 +2,24 @@
 import Layout from '../layouts/Layout.astro';
 import Gallery from '../components/Gallery';
 import HeroCarousel from '../components/HeroCarousel';
+import FloatingGarbage from '../components/FloatingGarbage';
 ---
 
 <Layout title="Rich The Garbage | Gallery">
-	<main class="min-h-screen bg-zinc-950">
-		<div class="relative">
+	<main class="min-h-screen relative overflow-hidden">
+		<FloatingGarbage client:only="react" />
+		<div class="relative z-10">
 			<HeroCarousel client:load />
 
-			<div class="relative z-10 -mt-20 pb-20 bg-gradient-to-b from-transparent to-zinc-950">
+			<div class="relative z-10 -mt-20 pb-20 bg-gradient-to-b from-transparent to-white/30 backdrop-blur-[2px]">
+				<div class="text-center mb-12 pt-20">
+					<h2 class="text-3xl md:text-4xl font-bold text-slate-800 mb-4 tracking-tight">The Collection</h2>
+					<div class="h-1 w-20 bg-purple-400 mx-auto rounded-full"></div>
+				</div>
 				<Gallery client:load />
 			</div>
 			
-			<footer class="py-12 text-center text-zinc-600 text-sm bg-zinc-950">
+			<footer class="py-12 text-center text-slate-500 text-sm bg-white/30 backdrop-blur-sm">
 				<p>&copy; {new Date().getFullYear()} Rich The Garbage. All rights reserved.</p>
 			</footer>
 		</div>
