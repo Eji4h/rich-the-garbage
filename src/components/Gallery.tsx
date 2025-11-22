@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { galleryImages } from "../utils/images";
+import LikeButton from "./LikeButton";
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -75,8 +76,13 @@ function GalleryItem({
       />
       
       <div className="absolute bottom-0 left-0 right-0 z-20 p-6 translate-y-4 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
-        <p className="text-sm font-medium text-white drop-shadow-md">Collection Item</p>
-        <p className="text-xs text-white/80 drop-shadow-md">#{index + 1}</p>
+        <div className="flex items-end justify-between">
+          <div>
+            <p className="text-sm font-medium text-white drop-shadow-md">Collection Item</p>
+            <p className="text-xs text-white/80 drop-shadow-md">#{index + 1}</p>
+          </div>
+          <LikeButton imageId={src} />
+        </div>
       </div>
     </motion.div>
   );
@@ -181,8 +187,11 @@ export default function Gallery() {
                   alt="Selected gallery image"
                   className="max-h-[85vh] w-auto object-contain"
                 />
-                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-white/90 to-transparent p-6 text-center">
-                  <p className="text-slate-900 font-medium">Image {selectedIndex + 1} of {images.length}</p>
+                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-white/90 to-transparent p-6">
+                  <div className="flex items-center justify-between">
+                    <p className="text-slate-900 font-medium">Image {selectedIndex + 1} of {images.length}</p>
+                    <LikeButton imageId={images[selectedIndex]} />
+                  </div>
                 </div>
               </motion.div>
             </motion.div>

@@ -1,7 +1,14 @@
 {
-  "name": "rich-the-garbage",
-  "compatibility_date": "2024-11-22",
-  "assets": {
-    "directory": "./dist"
-  }
+	"name": "rich-the-garbage",
+	"compatibility_date": "2024-11-22",
+	"assets": {
+		"directory": "./dist"
+	},
+	"kv_namespaces": [
+		{
+			"binding": "LIKES_KV",
+			"id": "762cb910f4324abe9f1685b77efb0e88",
+			"preview_id": "5a52b63211d3415f9d41e73b6c1bff91"
+		}
+	]
 }
