@@ -1,0 +1,21 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Gallery from '../components/Gallery';
+import HeroCarousel from '../components/HeroCarousel';
+---
+
+<Layout title="Rich The Garbage | Gallery">
+	<main class="min-h-screen bg-zinc-950">
+		<div class="relative">
+			<HeroCarousel client:load />
+
+			<div class="relative z-10 -mt-20 pb-20 bg-gradient-to-b from-transparent to-zinc-950">
+				<Gallery client:load />
+			</div>
+			
+			<footer class="py-12 text-center text-zinc-600 text-sm bg-zinc-950">
+				<p>&copy; {new Date().getFullYear()} Rich The Garbage. All rights reserved.</p>
+			</footer>
+		</div>
+	</main>
+</Layout>
