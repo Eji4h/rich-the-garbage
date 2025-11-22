@@ -59,10 +59,13 @@ export default function LikeButton({ imageId, className = "" }: LikeButtonProps)
       }
     } catch (error) {
       // Rollback on error
-      setCount(previousCount);
-      setIsLiked(previousLiked);
-      localStorage.setItem(`liked:${imageId}`, previousLiked.toString());
       console.error('Failed to update like:', error);
+      // Small delay so user sees the interaction even if it fails (e.g. local dev)
+      setTimeout(() => {
+        setCount(previousCount);
+        setIsLiked(previousLiked);
+        localStorage.setItem(`liked:${imageId}`, previousLiked.toString());
+      }, 500);
     } finally {
       setIsLoading(false);
       setTimeout(() => setIsAnimating(false), 600);
@@ -73,7 +76,7 @@ export default function LikeButton({ imageId, className = "" }: LikeButtonProps)
     <motion.button
       onClick={handleLike}
       disabled={isLoading}
-      className={`group flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 backdrop-blur-md shadow-lg hover:shadow-xl transition-all duration-300 hover:bg-white/90 disabled:opacity-50 disabled:cursor-not-allowed ring-1 ring-white/50 hover:ring-white/80 ${className}`}
+      className={`relative z-30 group flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 backdrop-blur-md shadow-lg hover:shadow-xl transition-all duration-300 hover:bg-white/90 disabled:opacity-50 disabled:cursor-not-allowed ring-1 ring-white/50 hover:ring-white/80 ${className}`}
       whileHover={{ scale: 1.05 }}
       whileTap={{ scale: 0.95 }}
     >

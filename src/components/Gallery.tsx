@@ -81,7 +81,12 @@ function GalleryItem({
             <p className="text-sm font-medium text-white drop-shadow-md">Collection Item</p>
             <p className="text-xs text-white/80 drop-shadow-md">#{index + 1}</p>
           </div>
-          <LikeButton imageId={src} />
+          <div 
+            onClick={(e) => e.stopPropagation()} 
+            className="relative z-30"
+          >
+            <LikeButton imageId={src} />
+          </div>
         </div>
       </div>
     </motion.div>
