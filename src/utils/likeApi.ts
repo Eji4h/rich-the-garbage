@@ -16,9 +16,15 @@ const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 // Mock storage for local dev
 const localLikes = new Map<string, number>();
 
+// Encode ID to be URL-safe (Base64url) to avoid issues with slashes in paths
+function encodeId(id: string): string {
+  return btoa(id).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
 export async function getLikes(imageId: string): Promise<number> {
   try {
-    const response = await fetch(`${API_BASE}/${encodeURIComponent(imageId)}`);
+    const encodedId = encodeId(imageId);
+    const response = await fetch(`${API_BASE}/${encodedId}`);
     if (!response.ok) {
       if (isDev) {
         // Return mock data in dev
@@ -37,7 +43,8 @@ export async function getLikes(imageId: string): Promise<number> {
 
 export async function addLike(imageId: string): Promise<number> {
   try {
-    const response = await fetch(`${API_BASE}/${encodeURIComponent(imageId)}`, {
+    const encodedId = encodeId(imageId);
+    const response = await fetch(`${API_BASE}/${encodedId}`, {
       method: 'POST',
     });
     if (!response.ok) {
@@ -68,7 +75,8 @@ export async function addLike(imageId: string): Promise<number> {
 
 export async function removeLike(imageId: string): Promise<number> {
   try {
-    const response = await fetch(`${API_BASE}/${encodeURIComponent(imageId)}`, {
+    const encodedId = encodeId(imageId);
+    const response = await fetch(`${API_BASE}/${encodedId}`, {
       method: 'DELETE',
     });
     if (!response.ok) {
