@@ -1,15 +1,16 @@
-// Cloudflare Pages Function for handling likes
-// Uses KV storage to persist like counts
+import type { APIRoute } from 'astro';
 
-interface Env {
-  LIKES_KV: any; // KV namespace
-}
-
-export const onRequestGet = async (context: any) => {
-  const imageId = context.params.imageId as string;
+export const GET: APIRoute = async ({ params, locals }) => {
+  const imageId = params.imageId;
   
+  if (!imageId) {
+    return new Response(JSON.stringify({ error: 'Image ID required' }), { status: 400 });
+  }
+
   try {
-    const count = await context.env.LIKES_KV.get(`likes:${imageId}`);
+    const env = locals.runtime.env;
+    const count = await env.LIKES_KV.get(`likes:${imageId}`);
+    
     return new Response(JSON.stringify({ 
       imageId, 
       count: count ? parseInt(count) : 0 
@@ -20,6 +21,7 @@ export const onRequestGet = async (context: any) => {
       }
     });
   } catch (error) {
+    console.error('KV Error:', error);
     return new Response(JSON.stringify({ error: 'Failed to fetch likes' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' }
@@ -27,13 +29,18 @@ export const onRequestGet = async (context: any) => {
   }
 };
 
-export const onRequestPost = async (context: any) => {
-  const imageId = context.params.imageId as string;
+export const POST: APIRoute = async ({ params, locals }) => {
+  const imageId = params.imageId;
+
+  if (!imageId) {
+    return new Response(JSON.stringify({ error: 'Image ID required' }), { status: 400 });
+  }
   
   try {
-    const currentCount = await context.env.LIKES_KV.get(`likes:${imageId}`);
+    const env = locals.runtime.env;
+    const currentCount = await env.LIKES_KV.get(`likes:${imageId}`);
     const newCount = (currentCount ? parseInt(currentCount) : 0) + 1;
-    await context.env.LIKES_KV.put(`likes:${imageId}`, newCount.toString());
+    await env.LIKES_KV.put(`likes:${imageId}`, newCount.toString());
     
     return new Response(JSON.stringify({ 
       imageId, 
@@ -45,6 +52,7 @@ export const onRequestPost = async (context: any) => {
       }
     });
   } catch (error) {
+    console.error('KV Error:', error);
     return new Response(JSON.stringify({ error: 'Failed to add like' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' }
@@ -52,13 +60,18 @@ export const onRequestPost = async (context: any) => {
   }
 };
 
-export const onRequestDelete = async (context: any) => {
-  const imageId = context.params.imageId as string;
+export const DELETE: APIRoute = async ({ params, locals }) => {
+  const imageId = params.imageId;
+
+  if (!imageId) {
+    return new Response(JSON.stringify({ error: 'Image ID required' }), { status: 400 });
+  }
   
   try {
-    const currentCount = await context.env.LIKES_KV.get(`likes:${imageId}`);
+    const env = locals.runtime.env;
+    const currentCount = await env.LIKES_KV.get(`likes:${imageId}`);
     const newCount = Math.max(0, (currentCount ? parseInt(currentCount) : 0) - 1);
-    await context.env.LIKES_KV.put(`likes:${imageId}`, newCount.toString());
+    await env.LIKES_KV.put(`likes:${imageId}`, newCount.toString());
     
     return new Response(JSON.stringify({ 
       imageId, 
@@ -70,21 +83,10 @@ export const onRequestDelete = async (context: any) => {
       }
     });
   } catch (error) {
+    console.error('KV Error:', error);
     return new Response(JSON.stringify({ error: 'Failed to remove like' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' }
     });
   }
 };
-
-// Handle OPTIONS for CORS
-export const onRequestOptions = async () => {
-  return new Response(null, {
-    headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type'
-    }
-  });
-};
-
