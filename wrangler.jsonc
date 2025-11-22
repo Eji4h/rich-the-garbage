@@ -4,6 +4,7 @@
 	"assets": {
 		"directory": "./dist"
 	},
+	"pages_build_output_dir": "./dist",
 	"kv_namespaces": [
 		{
 			"binding": "LIKES_KV",
