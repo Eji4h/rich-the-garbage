@@ -44,7 +44,9 @@ export default function LikeButton({ imageId }: LikeButtonProps) {
     }
 
     try {
-      const data = newLiked ? await addLike(imageId) : await removeLike(imageId);
+      const data = newLiked
+        ? await addLike(imageId)
+        : await removeLike(imageId);
       setLiked(data.liked);
       setCount(data.count);
     } catch {
@@ -132,4 +134,3 @@ export default function LikeButton({ imageId }: LikeButtonProps) {
     </div>
   );
 }
-

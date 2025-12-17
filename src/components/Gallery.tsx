@@ -79,7 +79,7 @@ function GalleryItem({
         alt={`Gallery image ${index + 1}`}
         className={cn(
           'h-full w-full object-cover transition-all duration-700 will-change-transform group-hover:scale-110',
-          isLoading ? 'opacity-0' : 'opacity-100'
+          isLoading ? 'opacity-0' : 'opacity-100',
         )}
         loading="lazy"
         onLoad={() => setIsLoading(false)}
@@ -108,13 +108,13 @@ export default function Gallery() {
 
   const handleNext = useCallback(() => {
     setSelectedIndex((prev) =>
-      prev === null ? null : (prev + 1) % images.length
+      prev === null ? null : (prev + 1) % images.length,
     );
   }, []);
 
   const handlePrev = useCallback(() => {
     setSelectedIndex((prev) =>
-      prev === null ? null : (prev - 1 + images.length) % images.length
+      prev === null ? null : (prev - 1 + images.length) % images.length,
     );
   }, []);
 
@@ -258,7 +258,7 @@ export default function Gallery() {
               </motion.div>
             )}
           </AnimatePresence>,
-          document.body
+          document.body,
         )}
     </div>
   );

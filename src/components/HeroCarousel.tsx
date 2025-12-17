@@ -9,7 +9,7 @@ const images = galleryImages;
 function getPaginationDots(
   currentIndex: number,
   totalImages: number,
-  maxDots: number = 7
+  maxDots: number = 7,
 ) {
   if (totalImages <= maxDots) {
     return Array.from({ length: totalImages }, (_, i) => i);
@@ -178,4 +178,3 @@ export default function HeroCarousel() {
     </div>
   );
 }
-
