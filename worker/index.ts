@@ -2,6 +2,7 @@
 
 interface Env {
   LIKES_KV: KVNamespace;
+  SCORE_KV: KVNamespace;
   ASSETS: Fetcher;
 }
 
@@ -10,11 +11,14 @@ interface LikeData {
   likedBy: string[];
 }
 
+const GLOBAL_SCORE_KEY = 'global_score';
+const SESSION_SCORE_PREFIX = 'session_score:';
+
 function getCorsHeaders() {
   return {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, X-Client-ID',
+    'Access-Control-Allow-Headers': 'Content-Type, X-Client-ID, X-Session-ID',
   };
 }
 
@@ -26,6 +30,71 @@ function jsonResponse(data: unknown, status = 200) {
       ...getCorsHeaders(),
     },
   });
+}
+
+async function handleScoreApi(request: Request, env: Env): Promise<Response> {
+  const sessionId = request.headers.get('X-Session-ID');
+
+  if (request.method === 'OPTIONS') {
+    return new Response(null, { status: 204, headers: getCorsHeaders() });
+  }
+
+  // GET /api/score - Get global score and session score
+  if (request.method === 'GET') {
+    try {
+      // Get global score
+      const globalStr = await env.SCORE_KV.get(GLOBAL_SCORE_KEY);
+      const globalScore = globalStr ? Number.parseInt(globalStr, 10) : 0;
+
+      // Get session score if sessionId provided
+      let sessionScore = 0;
+      if (sessionId) {
+        const sessionStr = await env.SCORE_KV.get(
+          `${SESSION_SCORE_PREFIX}${sessionId}`,
+        );
+        sessionScore = sessionStr ? Number.parseInt(sessionStr, 10) : 0;
+      }
+
+      return jsonResponse({ globalScore, sessionScore });
+    } catch {
+      return jsonResponse({ error: 'Failed to get scores' }, 500);
+    }
+  }
+
+  // POST /api/score - Add to both global and session score
+  if (request.method === 'POST') {
+    if (!sessionId) {
+      return jsonResponse({ error: 'Session ID required' }, 400);
+    }
+
+    try {
+      const body = (await request.json()) as { amount?: number };
+      const amount = body.amount || 1;
+
+      // Update global score
+      const globalStr = await env.SCORE_KV.get(GLOBAL_SCORE_KEY);
+      const currentGlobal = globalStr ? Number.parseInt(globalStr, 10) : 0;
+      const newGlobalScore = currentGlobal + amount;
+      await env.SCORE_KV.put(GLOBAL_SCORE_KEY, newGlobalScore.toString());
+
+      // Update session score
+      const sessionKey = `${SESSION_SCORE_PREFIX}${sessionId}`;
+      const sessionStr = await env.SCORE_KV.get(sessionKey);
+      const currentSession = sessionStr ? Number.parseInt(sessionStr, 10) : 0;
+      const newSessionScore = currentSession + amount;
+      await env.SCORE_KV.put(sessionKey, newSessionScore.toString());
+
+      return jsonResponse({
+        globalScore: newGlobalScore,
+        sessionScore: newSessionScore,
+        added: amount,
+      });
+    } catch {
+      return jsonResponse({ error: 'Failed to update scores' }, 500);
+    }
+  }
+
+  return jsonResponse({ error: 'Method not allowed' }, 405);
 }
 
 async function handleLikesApi(request: Request, env: Env): Promise<Response> {
@@ -109,7 +178,12 @@ export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
 
-    // Handle API routes
+    // Handle Score API
+    if (url.pathname === '/api/score') {
+      return handleScoreApi(request, env);
+    }
+
+    // Handle Likes API
     if (url.pathname.startsWith('/api/likes/')) {
       return handleLikesApi(request, env);
     }
@@ -118,4 +192,3 @@ export default {
     return env.ASSETS.fetch(request);
   },
 };
-

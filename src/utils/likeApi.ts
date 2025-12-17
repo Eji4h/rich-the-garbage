@@ -68,4 +68,3 @@ export async function removeLike(imageId: string): Promise<LikeResponse> {
     return { count: 0, liked: false };
   }
 }
-

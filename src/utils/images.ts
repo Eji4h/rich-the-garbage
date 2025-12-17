@@ -5,4 +5,3 @@ const imageImports = import.meta.glob('/src/assets/gallery/*.{jpg,webp}', {
 });
 
 export const galleryImages = Object.values(imageImports) as string[];
-

@@ -10,6 +10,9 @@
       "binding": "LIKES_KV",
       "id": "762cb910f4324abe9f1685b77efb0e88",
     },
+    {
+      "binding": "SCORE_KV",
+      "id": "96ebd64b7ca84fadad4a54da461a60b9",
+    },
   ],
 }
-
