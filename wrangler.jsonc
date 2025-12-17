@@ -8,8 +8,8 @@
   "kv_namespaces": [
     {
       "binding": "LIKES_KV",
-      "id": "YOUR_PRODUCTION_KV_ID",
-      "preview_id": "YOUR_PREVIEW_KV_ID"
+      "id": "762cb910f4324abe9f1685b77efb0e88",
+      "preview_id": "5a52b63211d3415f9d41e73b6c1bff91"
     }
   ]
 }
