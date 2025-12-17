@@ -1,5 +1,6 @@
 import FloatingGarbage from './components/FloatingGarbage';
 import HeroCarousel from './components/HeroCarousel';
+import GameSection from './components/GameSection';
 import GalleryHeader from './components/GalleryHeader';
 import Gallery from './components/Gallery';
 import Footer from './components/Footer';
@@ -11,7 +12,12 @@ function App() {
       <div className="relative z-10">
         <HeroCarousel />
 
-        <div className="relative z-10 -mt-20 pb-20 bg-gradient-to-b from-transparent to-white/30 backdrop-blur-[2px]">
+        {/* Game Section */}
+        <div className="relative z-20">
+          <GameSection />
+        </div>
+
+        <div className="relative z-10 pb-20 bg-gradient-to-b from-transparent to-white/30 backdrop-blur-[2px]">
           <GalleryHeader />
           <Gallery />
         </div>

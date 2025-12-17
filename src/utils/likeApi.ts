@@ -1,6 +1,6 @@
 // API client for like operations
-// In development mode, uses localStorage for persistence
-// In production, would use a real API (e.g., Cloudflare Workers)
+// In development mode (vite dev), uses localStorage for persistence
+// In production (Cloudflare Pages), uses Cloudflare Workers API with KV storage
 
 export interface LikeResponse {
   imageId: string;
@@ -9,8 +9,8 @@ export interface LikeResponse {
 
 const API_BASE = '/api/likes';
 
-// Helper to check if we're in development (no backend API available)
-const isDev = import.meta.env.DEV;
+// Check if running on localhost (vite dev server)
+const isLocalDev = typeof window !== 'undefined' && window.location.hostname === 'localhost';
 
 // Helper to simulate API delay
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -32,8 +32,8 @@ function encodeId(id: string): string {
 }
 
 export async function getLikes(imageId: string): Promise<number> {
-  // In dev mode, use localStorage directly without API call
-  if (isDev) {
+  // In local dev mode, use localStorage directly without API call
+  if (isLocalDev) {
     await delay(100); // Small delay for realism
     return getLocalLikes(imageId);
   }
@@ -48,13 +48,14 @@ export async function getLikes(imageId: string): Promise<number> {
     return data.count;
   } catch (error) {
     console.error('Error fetching likes:', error);
-    return 0;
+    // Fallback to localStorage if API fails
+    return getLocalLikes(imageId);
   }
 }
 
 export async function addLike(imageId: string): Promise<number> {
-  // In dev mode, use localStorage directly without API call
-  if (isDev) {
+  // In local dev mode, use localStorage directly without API call
+  if (isLocalDev) {
     await delay(200); // Simulate network delay
     const current = getLocalLikes(imageId);
     const newVal = current + 1;
@@ -74,13 +75,17 @@ export async function addLike(imageId: string): Promise<number> {
     return data.count;
   } catch (error) {
     console.error('Error adding like:', error);
-    throw error;
+    // Fallback to localStorage if API fails
+    const current = getLocalLikes(imageId);
+    const newVal = current + 1;
+    setLocalLikes(imageId, newVal);
+    return newVal;
   }
 }
 
 export async function removeLike(imageId: string): Promise<number> {
-  // In dev mode, use localStorage directly without API call
-  if (isDev) {
+  // In local dev mode, use localStorage directly without API call
+  if (isLocalDev) {
     await delay(200); // Simulate network delay
     const current = getLocalLikes(imageId);
     const newVal = Math.max(0, current - 1);
@@ -100,7 +105,11 @@ export async function removeLike(imageId: string): Promise<number> {
     return data.count;
   } catch (error) {
     console.error('Error removing like:', error);
-    throw error;
+    // Fallback to localStorage if API fails
+    const current = getLocalLikes(imageId);
+    const newVal = Math.max(0, current - 1);
+    setLocalLikes(imageId, newVal);
+    return newVal;
   }
 }
 

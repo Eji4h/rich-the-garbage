@@ -1,35 +1,21 @@
 {
-  "name": "template-react-ts",
+  "name": "rich-the-garbage",
   "type": "module",
-  "description": "A Phaser 3 TypeScript project template that demonstrates React communication and uses Vite for bundling.",
-  "version": "1.1.0",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/phaserjs/template-react-ts.git"
-  },
-  "author": "Phaser Studio <support@phaser.io> (https://phaser.io/)",
+  "description": "Rich The Garbage - A beautiful photo gallery with like functionality",
+  "version": "1.0.0",
   "license": "MIT",
-  "licenseUrl": "http://www.opensource.org/licenses/mit-license.php",
-  "bugs": {
-    "url": "https://github.com/phaserjs/template-react-ts/issues"
-  },
-  "homepage": "https://github.com/phaserjs/template-react-ts#readme",
-  "keywords": [
-    "phaser",
-    "phaser3",
-    "react",
-    "vite",
-    "typescript"
-  ],
   "scripts": {
-    "dev": "node log.js dev & vite --config vite/config.dev.mjs",
-    "build": "node log.js build & vite build --config vite/config.prod.mjs",
-    "dev-nolog": "vite --config vite/config.dev.mjs",
-    "build-nolog": "vite build --config vite/config.prod.mjs",
+    "dev": "vite --config vite/config.dev.mjs",
+    "build": "vite build --config vite/config.prod.mjs",
+    "preview": "vite preview --config vite/config.prod.mjs",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "pages:dev": "wrangler pages dev dist --kv LIKES_KV",
+    "pages:deploy": "pnpm run build && wrangler pages deploy dist",
+    "cf:kv:create": "wrangler kv:namespace create LIKES_KV",
+    "cf:kv:create:preview": "wrangler kv:namespace create LIKES_KV --preview"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.18",
@@ -42,6 +28,7 @@
     "tailwindcss": "^4.1.18"
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "^4.20251217.0",
     "@eslint/js": "^9.22.0",
     "@types/react": "^19.0.10",
     "@types/react-dom": "^19.0.4",
@@ -55,6 +42,7 @@
     "terser": "^5.28.1",
     "typescript": "~5.7.2",
     "typescript-eslint": "^8.26.1",
-    "vite": "^6.3.1"
+    "vite": "^6.3.1",
+    "wrangler": "^4.55.0"
   }
 }
