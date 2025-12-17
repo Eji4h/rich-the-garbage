@@ -1,10 +1,43 @@
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { IRefPhaserGame, PhaserGame } from '../PhaserGame';
+
+// Generate or get session ID
+function getSessionId(): string {
+  const SESSION_KEY = 'game_session_id';
+  let sessionId = sessionStorage.getItem(SESSION_KEY);
+  if (!sessionId) {
+    sessionId = crypto.randomUUID();
+    sessionStorage.setItem(SESSION_KEY, sessionId);
+  }
+  return sessionId;
+}
 
 export default function GameSection() {
   const phaserRef = useRef<IRefPhaserGame | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [globalScore, setGlobalScore] = useState<number | null>(null);
+  const [sessionScore, setSessionScore] = useState<number | null>(null);
+
+  useEffect(() => {
+    fetchScores();
+  }, []);
+
+  const fetchScores = async () => {
+    try {
+      const sessionId = getSessionId();
+      const response = await fetch('/api/score', {
+        headers: {
+          'X-Session-ID': sessionId,
+        },
+      });
+      const data = await response.json();
+      setGlobalScore(data.globalScore || 0);
+      setSessionScore(data.sessionScore || 0);
+    } catch (error) {
+      console.error('Failed to fetch scores:', error);
+    }
+  };
 
   const handleSceneChange = (scene: Phaser.Scene) => {
     console.log('Current scene:', scene.scene.key);
@@ -13,26 +46,58 @@ export default function GameSection() {
   return (
     <section className="relative py-8">
       <div className="max-w-6xl mx-auto px-4">
-        {/* Compact Play Button - when not playing */}
+        {/* Score Preview - when not playing */}
         {!isPlaying && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="flex justify-center"
+            className="flex flex-col items-center gap-6"
           >
+            {/* Scores Display */}
+            <div className="flex gap-12 items-center">
+              {/* Global Score */}
+              <div className="text-center">
+                <p className="text-slate-400 text-sm mb-1">🌍 Global Score</p>
+                <motion.p
+                  className="text-4xl font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent"
+                  animate={{ scale: [1, 1.02, 1] }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                >
+                  {globalScore !== null ? globalScore.toLocaleString() : '...'}
+                </motion.p>
+              </div>
+
+              {/* Session Score */}
+              <div className="text-center">
+                <p className="text-slate-400 text-sm mb-1">⭐ Your Session</p>
+                <motion.p
+                  className="text-4xl font-bold bg-gradient-to-r from-amber-400 to-orange-500 bg-clip-text text-transparent"
+                  animate={{ scale: [1, 1.02, 1] }}
+                  transition={{ duration: 2, repeat: Infinity, delay: 0.5 }}
+                >
+                  {sessionScore !== null
+                    ? sessionScore.toLocaleString()
+                    : '...'}
+                </motion.p>
+              </div>
+            </div>
+
+            {/* Play Button */}
             <motion.button
               onClick={() => setIsPlaying(true)}
-              className="group flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 rounded-full shadow-lg hover:shadow-xl transition-all"
+              className="group flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-rose-500 via-pink-500 to-purple-600 rounded-full shadow-lg hover:shadow-xl transition-all"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
-              <span className="text-2xl">🎮</span>
-              <span className="text-white font-semibold">Play Game</span>
+              <span className="text-2xl">🎯</span>
+              <span className="text-white font-bold text-lg">
+                Click to Play!
+              </span>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 24 24"
                 fill="currentColor"
-                className="w-5 h-5 text-white"
+                className="w-6 h-6 text-white"
               >
                 <path
                   fillRule="evenodd"
@@ -65,7 +130,10 @@ export default function GameSection() {
 
                     {/* Close button */}
                     <button
-                      onClick={() => setIsPlaying(false)}
+                      onClick={() => {
+                        setIsPlaying(false);
+                        fetchScores(); // Refresh scores when closing
+                      }}
                       className="absolute top-3 right-3 z-20 p-2 bg-black/60 hover:bg-black/80 rounded-full transition-colors"
                       title="Close"
                     >
@@ -90,7 +158,8 @@ export default function GameSection() {
 
               {/* Instructions */}
               <p className="mt-3 text-center text-slate-500 text-sm">
-                Use Arrow keys or WASD to move • Press Space to jump
+                Click the button to score! Every click adds to the global total!
+                🌍
               </p>
             </motion.div>
           )}
