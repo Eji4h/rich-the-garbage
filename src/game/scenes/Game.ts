@@ -17,12 +17,15 @@ export class Game extends Scene {
   sessionId: string;
   sessionScore: number = 0;
   globalScore: number = 0;
+  pendingScore: number = 0; // Score waiting to be sent
   sessionScoreText: Phaser.GameObjects.Text;
   globalScoreText: Phaser.GameObjects.Text;
   clickButton: Phaser.GameObjects.Container;
   buttonCircle: Phaser.GameObjects.Arc;
   buttonText: Phaser.GameObjects.Text;
   particles: Phaser.GameObjects.Particles.ParticleEmitter;
+  syncTimer: Phaser.Time.TimerEvent | null = null;
+  isSyncing: boolean = false;
 
   constructor() {
     super('Game');
@@ -33,6 +36,8 @@ export class Game extends Scene {
     this.camera.setBackgroundColor(0x1a1a2e);
 
     this.sessionId = getSessionId();
+    this.pendingScore = 0;
+    this.isSyncing = false;
 
     // Create gradient-like background with rectangles
     const bgGradient = this.add.graphics();
@@ -182,7 +187,14 @@ export class Game extends Scene {
     });
   }
 
-  async onButtonClick() {
+  onButtonClick() {
+    // Optimistic update - update UI immediately
+    this.sessionScore++;
+    this.globalScore++;
+    this.pendingScore++;
+    this.sessionScoreText.setText(this.sessionScore.toLocaleString());
+    this.globalScoreText.setText(this.globalScore.toLocaleString());
+
     // Visual feedback
     this.tweens.add({
       targets: this.clickButton,
@@ -216,8 +228,56 @@ export class Game extends Scene {
       onComplete: () => plusOne.destroy(),
     });
 
-    // Send score to server
-    await this.addScore();
+    // Debounce sync - batch multiple clicks into one request
+    this.scheduleSyncScore();
+  }
+
+  scheduleSyncScore() {
+    // Cancel previous timer if exists
+    if (this.syncTimer) {
+      this.syncTimer.destroy();
+    }
+
+    // Schedule sync after 300ms of no clicks
+    this.syncTimer = this.time.delayedCall(300, () => {
+      this.syncScore();
+    });
+  }
+
+  async syncScore() {
+    if (this.isSyncing || this.pendingScore === 0) return;
+
+    const scoreToSync = this.pendingScore;
+    this.pendingScore = 0;
+    this.isSyncing = true;
+
+    try {
+      const response = await fetch('/api/score', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Session-ID': this.sessionId,
+        },
+        body: JSON.stringify({ amount: scoreToSync }),
+      });
+      const data = await response.json();
+
+      // Update with actual server values
+      this.globalScore = data.globalScore || this.globalScore;
+      this.sessionScore = data.sessionScore || this.sessionScore;
+      this.globalScoreText.setText(this.globalScore.toLocaleString());
+      this.sessionScoreText.setText(this.sessionScore.toLocaleString());
+    } catch (error) {
+      console.error('Failed to sync score:', error);
+      // Score already shown optimistically, just log the error
+    } finally {
+      this.isSyncing = false;
+
+      // If more clicks happened during sync, sync again
+      if (this.pendingScore > 0) {
+        this.scheduleSyncScore();
+      }
+    }
   }
 
   async fetchScores() {
@@ -234,31 +294,6 @@ export class Game extends Scene {
       this.sessionScoreText.setText(this.sessionScore.toLocaleString());
     } catch (error) {
       console.error('Failed to fetch scores:', error);
-    }
-  }
-
-  async addScore() {
-    try {
-      const response = await fetch('/api/score', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Session-ID': this.sessionId,
-        },
-        body: JSON.stringify({ amount: 1 }),
-      });
-      const data = await response.json();
-      this.globalScore = data.globalScore || this.globalScore;
-      this.sessionScore = data.sessionScore || this.sessionScore;
-      this.globalScoreText.setText(this.globalScore.toLocaleString());
-      this.sessionScoreText.setText(this.sessionScore.toLocaleString());
-    } catch (error) {
-      console.error('Failed to add score:', error);
-      // Update locally even if server fails
-      this.sessionScore++;
-      this.globalScore++;
-      this.sessionScoreText.setText(this.sessionScore.toLocaleString());
-      this.globalScoreText.setText(this.globalScore.toLocaleString());
     }
   }
 }
