@@ -1,7 +1,7 @@
 {
   "name": "rich-the-garbage",
   "type": "module",
-  "description": "Rich The Garbage - A beautiful photo gallery",
+  "description": "Rich The Garbage - A beautiful photo gallery with like functionality",
   "version": "1.0.0",
   "license": "MIT",
   "scripts": {
@@ -24,6 +24,7 @@
     "tailwindcss": "^4.1.18"
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "^4.20251217.0",
     "@eslint/js": "^9.22.0",
     "@types/react": "^19.0.10",
     "@types/react-dom": "^19.0.4",
