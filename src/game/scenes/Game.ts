@@ -362,8 +362,12 @@ export class Game extends Scene {
       });
       const data = await response.json();
 
-      this.globalScore = data.globalScore || this.globalScore;
-      this.sessionScore = data.sessionScore || this.sessionScore;
+      // Add pending score to server values to prevent score going backwards
+      const serverGlobal = data.globalScore || 0;
+      const serverSession = data.sessionScore || 0;
+
+      this.globalScore = serverGlobal + this.pendingScore;
+      this.sessionScore = serverSession + this.pendingScore;
       this.globalScoreText.setText(this.globalScore.toLocaleString());
       this.sessionScoreText.setText(this.sessionScore.toLocaleString());
     } catch (error) {
