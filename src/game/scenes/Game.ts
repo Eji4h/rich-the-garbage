@@ -1,6 +1,8 @@
 import { EventBus } from '../EventBus';
 import { Scene } from 'phaser';
 
+type DrinkOutcome = 'normal' | 'puke' | 'puke_bin';
+
 // Generate or get session ID
 function getSessionId(): string {
   const SESSION_KEY = 'game_session_id';
@@ -138,7 +140,7 @@ export class Game extends Scene {
         start: 0,
         end: 5,
       }),
-      frameRate: 8,
+      frameRate: 12,
       repeat: -1,
     });
 
@@ -149,7 +151,7 @@ export class Game extends Scene {
         start: 6,
         end: 11,
       }),
-      frameRate: 10,
+      frameRate: 18,
       repeat: 0,
     });
 
@@ -160,7 +162,7 @@ export class Game extends Scene {
         start: 12,
         end: 17,
       }),
-      frameRate: 8,
+      frameRate: 16,
       repeat: 0,
     });
 
@@ -171,7 +173,7 @@ export class Game extends Scene {
         start: 18,
         end: 23,
       }),
-      frameRate: 8,
+      frameRate: 16,
       repeat: 0,
     });
   }
@@ -230,61 +232,106 @@ export class Game extends Scene {
   }
 
   onCharacterClick() {
+    // Skip if already animating
+    if (this.isAnimating) return;
+
+    // Random outcome:
+    // 70% - Normal drink (+1)
+    // 20% - Drink then puke (+5)
+    // 10% - Drink then puke with bin (+10)
+    const roll = Math.random();
+    let scoreGain: number;
+    let outcome: DrinkOutcome;
+
+    if (roll < 0.1) {
+      // 10% chance - Puke with bin (+10)
+      outcome = 'puke_bin';
+      scoreGain = 10;
+    } else if (roll < 0.3) {
+      // 20% chance - Puke (+5)
+      outcome = 'puke';
+      scoreGain = 5;
+    } else {
+      // 70% chance - Normal drink (+1)
+      outcome = 'normal';
+      scoreGain = 1;
+    }
+
     // Optimistic update - update UI immediately
-    this.sessionScore++;
-    this.globalScore++;
-    this.pendingScore++;
+    this.sessionScore += scoreGain;
+    this.globalScore += scoreGain;
+    this.pendingScore += scoreGain;
     this.sessionScoreText.setText(this.sessionScore.toLocaleString());
     this.globalScoreText.setText(this.globalScore.toLocaleString());
 
-    // Play drink animation if not already animating
-    if (!this.isAnimating) {
-      this.isAnimating = true;
-      this.character.play('drink');
+    // Play animations
+    this.isAnimating = true;
+    this.character.play('drink');
 
-      // When drink animation completes
-      this.character.once('animationcomplete', () => {
-        // Random chance to puke after drinking a lot
-        if (this.sessionScore > 0 && this.sessionScore % 10 === 0) {
-          // Every 10 drinks, puke!
-          const pukAnim = Math.random() > 0.5 ? 'puke' : 'puke_bin';
-          this.character.play(pukAnim);
-          this.character.once('animationcomplete', () => {
-            this.character.play('idle');
-            this.isAnimating = false;
-          });
-        } else {
+    // When drink animation completes
+    this.character.once('animationcomplete', () => {
+      if (outcome === 'puke' || outcome === 'puke_bin') {
+        this.character.play(outcome);
+        this.character.once('animationcomplete', () => {
           this.character.play('idle');
           this.isAnimating = false;
-        }
-      });
-    }
+        });
+      } else {
+        this.character.play('idle');
+        this.isAnimating = false;
+      }
+    });
 
-    // Emit particles
-    this.particles.explode(10);
+    // Emit particles (more for higher scores)
+    this.particles.explode(scoreGain * 5);
 
-    // Floating +1 text
-    const plusOne = this.add
-      .text(512 + Phaser.Math.Between(-50, 50), 200, '+1 🍺', {
+    // Floating score text
+    const scoreText = this.getScoreText(outcome, scoreGain);
+    const plusText = this.add
+      .text(512 + Phaser.Math.Between(-50, 50), 200, scoreText, {
         fontFamily: 'Arial Black',
-        fontSize: 28,
-        color: '#fbbf24',
-        stroke: '#d97706',
-        strokeThickness: 2,
+        fontSize: scoreGain > 1 ? 36 : 28,
+        color: this.getScoreColor(outcome),
+        stroke: '#000000',
+        strokeThickness: 3,
       })
       .setOrigin(0.5);
 
     this.tweens.add({
-      targets: plusOne,
+      targets: plusText,
       y: 120,
       alpha: 0,
-      duration: 600,
+      scaleX: 1.5,
+      scaleY: 1.5,
+      duration: 800,
       ease: 'Power2',
-      onComplete: () => plusOne.destroy(),
+      onComplete: () => plusText.destroy(),
     });
 
     // Debounce sync
     this.scheduleSyncScore();
+  }
+
+  getScoreText(outcome: DrinkOutcome, score: number): string {
+    switch (outcome) {
+      case 'puke_bin':
+        return `+${score} 🗑️🤮`;
+      case 'puke':
+        return `+${score} 🤮`;
+      default:
+        return `+${score} 🍺`;
+    }
+  }
+
+  getScoreColor(outcome: DrinkOutcome): string {
+    switch (outcome) {
+      case 'puke_bin':
+        return '#10b981'; // Green - best!
+      case 'puke':
+        return '#a855f7'; // Purple
+      default:
+        return '#fbbf24'; // Yellow
+    }
   }
 
   scheduleSyncScore() {
