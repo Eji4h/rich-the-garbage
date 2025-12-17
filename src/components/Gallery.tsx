@@ -4,7 +4,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { galleryImages } from '../utils/images';
-import LikeButton from './LikeButton';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -93,9 +92,6 @@ function GalleryItem({
               Collection Item
             </p>
             <p className="text-xs text-white/80 drop-shadow-md">#{index + 1}</p>
-          </div>
-          <div onClick={(e) => e.stopPropagation()} className="relative z-30">
-            <LikeButton imageId={src} />
           </div>
         </div>
       </div>
@@ -247,12 +243,9 @@ export default function Gallery() {
                     className="max-h-[85vh] w-auto object-contain"
                   />
                   <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-white/90 to-transparent p-6">
-                    <div className="flex items-center justify-between">
-                      <p className="text-slate-900 font-medium">
-                        Image {selectedIndex + 1} of {images.length}
-                      </p>
-                      <LikeButton imageId={images[selectedIndex]} />
-                    </div>
+                    <p className="text-slate-900 font-medium">
+                      Image {selectedIndex + 1} of {images.length}
+                    </p>
                   </div>
                 </motion.div>
               </motion.div>
@@ -263,4 +256,3 @@ export default function Gallery() {
     </div>
   );
 }
-
