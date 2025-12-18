@@ -1,23 +1,13 @@
 import { useRef, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { IRefPhaserGame, PhaserGame } from '../PhaserGame';
-
-// Generate or get session ID
-function getSessionId(): string {
-  const SESSION_KEY = 'game_session_id';
-  let sessionId = sessionStorage.getItem(SESSION_KEY);
-  if (!sessionId) {
-    sessionId = crypto.randomUUID();
-    sessionStorage.setItem(SESSION_KEY, sessionId);
-  }
-  return sessionId;
-}
+import { getClientId } from '../utils/clientId';
 
 export default function GameSection() {
   const phaserRef = useRef<IRefPhaserGame | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [globalScore, setGlobalScore] = useState<number | null>(null);
-  const [sessionScore, setSessionScore] = useState<number | null>(null);
+  const [clientScore, setClientScore] = useState<number | null>(null);
 
   useEffect(() => {
     fetchScores();
@@ -25,15 +15,14 @@ export default function GameSection() {
 
   const fetchScores = async () => {
     try {
-      const sessionId = getSessionId();
       const response = await fetch('/api/score', {
         headers: {
-          'X-Session-ID': sessionId,
+          'X-Client-ID': getClientId(),
         },
       });
       const data = await response.json();
       setGlobalScore(data.globalScore || 0);
-      setSessionScore(data.sessionScore || 0);
+      setClientScore(data.clientScore || 0);
     } catch (error) {
       console.error('Failed to fetch scores:', error);
     }
@@ -69,7 +58,7 @@ export default function GameSection() {
                 </motion.p>
               </div>
 
-              {/* Session Score */}
+              {/* Client Score */}
               <div className="text-center">
                 <p className="text-slate-700 text-sm font-medium mb-1">
                   ⭐ Your Score
@@ -79,9 +68,7 @@ export default function GameSection() {
                   animate={{ scale: [1, 1.02, 1] }}
                   transition={{ duration: 2, repeat: Infinity, delay: 0.5 }}
                 >
-                  {sessionScore !== null
-                    ? sessionScore.toLocaleString()
-                    : '...'}
+                  {clientScore !== null ? clientScore.toLocaleString() : '...'}
                 </motion.p>
               </div>
             </div>

@@ -1,14 +1,6 @@
-const API_BASE = '/api/likes';
+import { getClientId } from './clientId';
 
-function getClientId(): string {
-  const key = 'rich-garbage-client-id';
-  let clientId = localStorage.getItem(key);
-  if (!clientId) {
-    clientId = crypto.randomUUID();
-    localStorage.setItem(key, clientId);
-  }
-  return clientId;
-}
+const API_BASE = '/api/likes';
 
 function getImageKey(imageId: string): string {
   const parts = imageId.split('/');
