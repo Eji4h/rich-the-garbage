@@ -12,13 +12,13 @@ interface LikeData {
 }
 
 const GLOBAL_SCORE_KEY = 'global_score';
-const SESSION_SCORE_PREFIX = 'session_score:';
+const CLIENT_SCORE_PREFIX = 'client_score:';
 
 function getCorsHeaders() {
   return {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, X-Client-ID, X-Session-ID',
+    'Access-Control-Allow-Headers': 'Content-Type, X-Client-ID',
   };
 }
 
@@ -33,13 +33,13 @@ function jsonResponse(data: unknown, status = 200) {
 }
 
 async function handleScoreApi(request: Request, env: Env): Promise<Response> {
-  const sessionId = request.headers.get('X-Session-ID');
+  const clientId = request.headers.get('X-Client-ID');
 
   if (request.method === 'OPTIONS') {
     return new Response(null, { status: 204, headers: getCorsHeaders() });
   }
 
-  // GET /api/score - Get global score and session score
+  // GET /api/score - Get global score and client score
   if (request.method === 'GET') {
     try {
       // Get global score
@@ -50,19 +50,19 @@ async function handleScoreApi(request: Request, env: Env): Promise<Response> {
         globalScore = isNaN(parsed) ? 0 : parsed;
       }
 
-      // Get session score if sessionId provided
-      let sessionScore = 0;
-      if (sessionId) {
-        const sessionStr = await env.SCORE_KV.get(
-          `${SESSION_SCORE_PREFIX}${sessionId}`,
+      // Get client score if clientId provided
+      let clientScore = 0;
+      if (clientId) {
+        const clientStr = await env.SCORE_KV.get(
+          `${CLIENT_SCORE_PREFIX}${clientId}`,
         );
-        if (sessionStr) {
-          const parsed = Number.parseInt(sessionStr, 10);
-          sessionScore = isNaN(parsed) ? 0 : parsed;
+        if (clientStr) {
+          const parsed = Number.parseInt(clientStr, 10);
+          clientScore = isNaN(parsed) ? 0 : parsed;
         }
       }
 
-      return jsonResponse({ globalScore, sessionScore });
+      return jsonResponse({ globalScore, clientScore });
     } catch (error) {
       console.error('Error getting scores:', error);
       return jsonResponse(
@@ -75,10 +75,10 @@ async function handleScoreApi(request: Request, env: Env): Promise<Response> {
     }
   }
 
-  // POST /api/score - Add to both global and session score
+  // POST /api/score - Add to both global and client score
   if (request.method === 'POST') {
-    if (!sessionId) {
-      return jsonResponse({ error: 'Session ID required' }, 400);
+    if (!clientId) {
+      return jsonResponse({ error: 'Client ID required' }, 400);
     }
 
     try {
@@ -98,18 +98,18 @@ async function handleScoreApi(request: Request, env: Env): Promise<Response> {
         : currentGlobal + amount;
       await env.SCORE_KV.put(GLOBAL_SCORE_KEY, String(newGlobalScore));
 
-      // Update session score
-      const sessionKey = `${SESSION_SCORE_PREFIX}${sessionId}`;
-      const sessionStr = await env.SCORE_KV.get(sessionKey);
-      const currentSession = sessionStr ? Number(sessionStr) : 0;
-      const newSessionScore = isNaN(currentSession)
+      // Update client score
+      const clientKey = `${CLIENT_SCORE_PREFIX}${clientId}`;
+      const clientStr = await env.SCORE_KV.get(clientKey);
+      const currentClient = clientStr ? Number(clientStr) : 0;
+      const newClientScore = isNaN(currentClient)
         ? amount
-        : currentSession + amount;
-      await env.SCORE_KV.put(sessionKey, String(newSessionScore));
+        : currentClient + amount;
+      await env.SCORE_KV.put(clientKey, String(newClientScore));
 
       return jsonResponse({
         globalScore: newGlobalScore,
-        sessionScore: newSessionScore,
+        clientScore: newClientScore,
         added: amount,
       });
     } catch (error) {

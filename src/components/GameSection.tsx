@@ -72,7 +72,7 @@ export default function GameSection() {
               {/* Session Score */}
               <div className="text-center">
                 <p className="text-slate-700 text-sm font-medium mb-1">
-                  ⭐ Your Session
+                  ⭐ Your Score
                 </p>
                 <motion.p
                   className="text-4xl font-bold bg-gradient-to-r from-amber-400 to-orange-500 bg-clip-text text-transparent"
@@ -168,7 +168,7 @@ export default function GameSection() {
 
               {/* Instructions */}
               <p className="mt-3 text-center text-slate-700 text-sm">
-                Click the button to score! Every click adds to the global total!
+                Tap the character to drink! Every tap adds to the global total!
                 🌍
               </p>
             </motion.div>

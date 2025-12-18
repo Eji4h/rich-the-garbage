@@ -3,24 +3,24 @@ import { Scene } from 'phaser';
 
 type DrinkOutcome = 'normal' | 'puke' | 'puke_bin';
 
-// Generate or get session ID
-function getSessionId(): string {
-  const SESSION_KEY = 'game_session_id';
-  let sessionId = sessionStorage.getItem(SESSION_KEY);
-  if (!sessionId) {
-    sessionId = crypto.randomUUID();
-    sessionStorage.setItem(SESSION_KEY, sessionId);
+// Generate or get client ID (persists in localStorage, shared with like feature)
+function getClientId(): string {
+  const CLIENT_KEY = 'rich-garbage-client-id';
+  let clientId = localStorage.getItem(CLIENT_KEY);
+  if (!clientId) {
+    clientId = crypto.randomUUID();
+    localStorage.setItem(CLIENT_KEY, clientId);
   }
-  return sessionId;
+  return clientId;
 }
 
 export class Game extends Scene {
   camera: Phaser.Cameras.Scene2D.Camera;
-  sessionId: string;
-  sessionScore: number = 0;
+  clientId: string;
+  clientScore: number = 0;
   globalScore: number = 0;
   pendingScore: number = 0;
-  sessionScoreText: Phaser.GameObjects.Text;
+  clientScoreText: Phaser.GameObjects.Text;
   globalScoreText: Phaser.GameObjects.Text;
   character: Phaser.GameObjects.Sprite;
   particles: Phaser.GameObjects.Particles.ParticleEmitter;
@@ -48,7 +48,7 @@ export class Game extends Scene {
     this.camera = this.cameras.main;
     this.camera.setBackgroundColor(0x1a1a2e);
 
-    this.sessionId = getSessionId();
+    this.clientId = getClientId();
     this.pendingScore = 0;
     this.isSyncing = false;
     this.isAnimating = false;
@@ -60,7 +60,7 @@ export class Game extends Scene {
 
     // Title
     this.add
-      .text(512, 30, '🍺 Click to Drink!', {
+      .text(512, 30, '🍺 Tap to Drink!', {
         fontFamily: 'Arial Black',
         fontSize: 36,
         color: '#ffffff',
@@ -89,7 +89,7 @@ export class Game extends Scene {
       })
       .setOrigin(0.5);
 
-    // Session Score - Right side
+    // Device Score - Right side
     this.add
       .text(874, 80, '⭐ Your Score', {
         fontFamily: 'Arial',
@@ -98,7 +98,7 @@ export class Game extends Scene {
       })
       .setOrigin(0.5);
 
-    this.sessionScoreText = this.add
+    this.clientScoreText = this.add
       .text(874, 115, '0', {
         fontFamily: 'Arial Black',
         fontSize: 28,
@@ -122,7 +122,7 @@ export class Game extends Scene {
 
     // Instructions
     this.add
-      .text(512, 540, 'Click the character to drink! 🍻', {
+      .text(512, 540, 'Tap the character to drink! 🍻', {
         fontFamily: 'Arial',
         fontSize: 16,
         color: '#64748b',
@@ -187,7 +187,7 @@ export class Game extends Scene {
     // Play idle animation
     this.character.play('idle');
 
-    // Click to drink
+    // Tap to drink
     this.character.on('pointerdown', () => {
       this.onCharacterClick();
     });
@@ -259,16 +259,16 @@ export class Game extends Scene {
 
     // Optimistic update - update UI immediately
     // No limit - scores can go beyond 9999
-    this.sessionScore += scoreGain;
+    this.clientScore += scoreGain;
     this.globalScore += scoreGain;
     this.pendingScore += scoreGain;
-    this.sessionScoreText.setText(this.sessionScore.toLocaleString());
+    this.clientScoreText.setText(this.clientScore.toLocaleString());
     this.globalScoreText.setText(this.globalScore.toLocaleString());
 
     // Debug log to verify score increment
     console.log('Score updated:', {
       globalScore: this.globalScore,
-      sessionScore: this.sessionScore,
+      clientScore: this.clientScore,
       pendingScore: this.pendingScore,
       scoreGain,
     });
@@ -365,7 +365,7 @@ export class Game extends Scene {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-Session-ID': this.sessionId,
+          'X-Client-ID': this.clientId,
         },
         body: JSON.stringify({ amount: scoreToSync }),
       });
@@ -375,19 +375,19 @@ export class Game extends Scene {
       // and add any new pending scores that accumulated during sync
       // No limit - scores can go beyond 9999
       const serverGlobal = data.globalScore || 0;
-      const serverSession = data.sessionScore || 0;
+      const serverClient = data.clientScore || 0;
 
       this.globalScore = serverGlobal + this.pendingScore;
-      this.sessionScore = serverSession + this.pendingScore;
+      this.clientScore = serverClient + this.pendingScore;
       this.globalScoreText.setText(this.globalScore.toLocaleString());
-      this.sessionScoreText.setText(this.sessionScore.toLocaleString());
+      this.clientScoreText.setText(this.clientScore.toLocaleString());
 
       // Debug log to verify sync
       console.log('Score synced:', {
         serverGlobal,
-        serverSession,
+        serverClient,
         globalScore: this.globalScore,
-        sessionScore: this.sessionScore,
+        clientScore: this.clientScore,
         pendingScore: this.pendingScore,
       });
     } catch (error) {
@@ -407,14 +407,14 @@ export class Game extends Scene {
     try {
       const response = await fetch('/api/score', {
         headers: {
-          'X-Session-ID': this.sessionId,
+          'X-Client-ID': this.clientId,
         },
       });
       const data = await response.json();
       this.globalScore = data.globalScore || 0;
-      this.sessionScore = data.sessionScore || 0;
+      this.clientScore = data.clientScore || 0;
       this.globalScoreText.setText(this.globalScore.toLocaleString());
-      this.sessionScoreText.setText(this.sessionScore.toLocaleString());
+      this.clientScoreText.setText(this.clientScore.toLocaleString());
     } catch (error) {
       console.error('Failed to fetch scores:', error);
     }
