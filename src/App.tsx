@@ -3,6 +3,7 @@ import HeroCarousel from './components/HeroCarousel';
 import GameSection from './components/GameSection';
 import GalleryHeader from './components/GalleryHeader';
 import Gallery from './components/Gallery';
+import Hacktoberfest from './components/Hacktoberfest';
 import Footer from './components/Footer';
 
 function App() {
@@ -21,6 +22,9 @@ function App() {
           <GalleryHeader />
           <Gallery />
         </div>
+
+        {/* Hacktoberfest / Contribute Section */}
+        <Hacktoberfest />
 
         <Footer />
       </div>
