@@ -57,7 +57,9 @@ export default function GameSection() {
             <div className="flex gap-12 items-center">
               {/* Global Score */}
               <div className="text-center">
-                <p className="text-slate-400 text-sm mb-1">🌍 Global Score</p>
+                <p className="text-slate-700 text-sm font-medium mb-1">
+                  🌍 Global Score
+                </p>
                 <motion.p
                   className="text-4xl font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent"
                   animate={{ scale: [1, 1.02, 1] }}
@@ -69,7 +71,9 @@ export default function GameSection() {
 
               {/* Session Score */}
               <div className="text-center">
-                <p className="text-slate-400 text-sm mb-1">⭐ Your Session</p>
+                <p className="text-slate-700 text-sm font-medium mb-1">
+                  ⭐ Your Session
+                </p>
                 <motion.p
                   className="text-4xl font-bold bg-gradient-to-r from-amber-400 to-orange-500 bg-clip-text text-transparent"
                   animate={{ scale: [1, 1.02, 1] }}
@@ -85,27 +89,33 @@ export default function GameSection() {
             {/* Play Button */}
             <motion.button
               onClick={() => setIsPlaying(true)}
-              className="group flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-rose-500 via-pink-500 to-purple-600 rounded-full shadow-lg hover:shadow-xl transition-all"
-              whileHover={{ scale: 1.05 }}
+              className="group relative flex items-center justify-center w-40 h-40 rounded-full shadow-2xl transition-all"
+              whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.95 }}
             >
-              <span className="text-2xl">🎯</span>
-              <span className="text-white font-bold text-lg">
-                Click to Play!
+              {/* Outer glow ring */}
+              <div className="absolute inset-0 rounded-full bg-gradient-to-br from-rose-500 via-pink-500 to-purple-600 animate-pulse opacity-50 blur-md" />
+
+              {/* Main button background */}
+              <div className="absolute inset-0 rounded-full bg-gradient-to-br from-rose-500 via-pink-500 to-purple-600 shadow-lg" />
+
+              {/* Inner circle */}
+              <div className="absolute inset-3 rounded-full bg-gradient-to-br from-rose-400 via-pink-400 to-purple-500 shadow-inner" />
+
+              {/* Beer icon */}
+              <span className="relative text-6xl drop-shadow-lg group-hover:scale-110 transition-transform">
+                🍺
               </span>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="currentColor"
-                className="w-6 h-6 text-white"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M4.5 5.653c0-1.426 1.529-2.33 2.779-1.643l11.54 6.348c1.295.712 1.295 2.573 0 3.285L7.28 19.991c-1.25.687-2.779-.217-2.779-1.643V5.653z"
-                  clipRule="evenodd"
-                />
-              </svg>
             </motion.button>
+
+            {/* Play text below button */}
+            <motion.p
+              className="text-slate-700 font-bold text-lg mt-4"
+              animate={{ opacity: [0.7, 1, 0.7] }}
+              transition={{ duration: 2, repeat: Infinity }}
+            >
+              🎮 PLAY GAME
+            </motion.p>
           </motion.div>
         )}
 
@@ -157,7 +167,7 @@ export default function GameSection() {
               </div>
 
               {/* Instructions */}
-              <p className="mt-3 text-center text-slate-500 text-sm">
+              <p className="mt-3 text-center text-slate-700 text-sm">
                 Click the button to score! Every click adds to the global total!
                 🌍
               </p>
