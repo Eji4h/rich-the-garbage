@@ -70,43 +70,43 @@ export class Game extends Scene {
       .setOrigin(0.5);
 
     // Score displays on the sides
-    // Global Score - Left side (left-aligned)
+    // Global Score - Left side
     this.add
-      .text(20, 80, '🌍 Global Score', {
+      .text(100, 80, '🌍 Global Score', {
         fontFamily: 'Arial',
         fontSize: 16,
         color: '#94a3b8',
       })
-      .setOrigin(0, 0.5);
+      .setOrigin(0.5);
 
     this.globalScoreText = this.add
-      .text(20, 115, '0', {
+      .text(100, 115, '0', {
         fontFamily: 'Arial Black',
         fontSize: 32,
         color: '#22d3ee',
         stroke: '#0891b2',
         strokeThickness: 2,
       })
-      .setOrigin(0, 0.5);
+      .setOrigin(0.5);
 
-    // Session Score - Right side (right-aligned)
+    // Session Score - Right side
     this.add
-      .text(1004, 80, '⭐ Your Score', {
+      .text(924, 80, '⭐ Your Score', {
         fontFamily: 'Arial',
         fontSize: 16,
         color: '#94a3b8',
       })
-      .setOrigin(1, 0.5);
+      .setOrigin(0.5);
 
     this.sessionScoreText = this.add
-      .text(1004, 115, '0', {
+      .text(924, 115, '0', {
         fontFamily: 'Arial Black',
         fontSize: 28,
         color: '#fbbf24',
         stroke: '#d97706',
         strokeThickness: 2,
       })
-      .setOrigin(1, 0.5);
+      .setOrigin(0.5);
 
     // Create animations
     this.createAnimations();
