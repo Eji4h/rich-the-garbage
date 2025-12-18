@@ -72,12 +72,14 @@ async function handleScoreApi(request: Request, env: Env): Promise<Response> {
       const amount = body.amount || 1;
 
       // Update global score
+      // No limit - scores can go beyond 9999
       const globalStr = await env.SCORE_KV.get(GLOBAL_SCORE_KEY);
       const currentGlobal = globalStr ? Number.parseInt(globalStr, 10) : 0;
       const newGlobalScore = currentGlobal + amount;
       await env.SCORE_KV.put(GLOBAL_SCORE_KEY, newGlobalScore.toString());
 
       // Update session score
+      // No limit - scores can go beyond 9999
       const sessionKey = `${SESSION_SCORE_PREFIX}${sessionId}`;
       const sessionStr = await env.SCORE_KV.get(sessionKey);
       const currentSession = sessionStr ? Number.parseInt(sessionStr, 10) : 0;
