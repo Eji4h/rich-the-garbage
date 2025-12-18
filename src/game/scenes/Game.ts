@@ -261,8 +261,8 @@ export class Game extends Scene {
     this.sessionScore += scoreGain;
     this.globalScore += scoreGain;
     this.pendingScore += scoreGain;
-    this.sessionScoreText.setText(this.sessionScore.toLocaleString());
-    this.globalScoreText.setText(this.globalScore.toLocaleString());
+    this.sessionScoreText.setText(this.formatScore(this.sessionScore));
+    this.globalScoreText.setText(this.formatScore(this.globalScore));
 
     // Play animations
     this.isAnimating = true;
@@ -334,6 +334,22 @@ export class Game extends Scene {
     }
   }
 
+  formatScore(score: number): string {
+    if (score >= 1_000_000_000) {
+      return (score / 1_000_000_000).toFixed(1).replace(/\.0$/, '') + 'B';
+    }
+    if (score >= 1_000_000) {
+      return (score / 1_000_000).toFixed(1).replace(/\.0$/, '') + 'M';
+    }
+    if (score >= 100_000) {
+      return (score / 1_000).toFixed(0) + 'K';
+    }
+    if (score >= 10_000) {
+      return (score / 1_000).toFixed(1).replace(/\.0$/, '') + 'K';
+    }
+    return score.toLocaleString();
+  }
+
   scheduleSyncScore() {
     if (this.syncTimer) {
       this.syncTimer.destroy();
@@ -368,8 +384,8 @@ export class Game extends Scene {
 
       this.globalScore = serverGlobal + this.pendingScore;
       this.sessionScore = serverSession + this.pendingScore;
-      this.globalScoreText.setText(this.globalScore.toLocaleString());
-      this.sessionScoreText.setText(this.sessionScore.toLocaleString());
+      this.globalScoreText.setText(this.formatScore(this.globalScore));
+      this.sessionScoreText.setText(this.formatScore(this.sessionScore));
     } catch (error) {
       console.error('Failed to sync score:', error);
     } finally {
@@ -391,8 +407,8 @@ export class Game extends Scene {
       const data = await response.json();
       this.globalScore = data.globalScore || 0;
       this.sessionScore = data.sessionScore || 0;
-      this.globalScoreText.setText(this.globalScore.toLocaleString());
-      this.sessionScoreText.setText(this.sessionScore.toLocaleString());
+      this.globalScoreText.setText(this.formatScore(this.globalScore));
+      this.sessionScoreText.setText(this.formatScore(this.sessionScore));
     } catch (error) {
       console.error('Failed to fetch scores:', error);
     }
