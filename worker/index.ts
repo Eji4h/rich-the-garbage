@@ -82,18 +82,7 @@ async function handleScoreApi(request: Request, env: Env): Promise<Response> {
     }
 
     try {
-      // Debug: Log incoming request
-      console.log('POST /api/score - sessionId:', sessionId);
-
-      let body: { amount?: number };
-      try {
-        body = (await request.json()) as { amount?: number };
-        console.log('Request body:', JSON.stringify(body));
-      } catch (parseError) {
-        console.error('Failed to parse request body:', parseError);
-        return jsonResponse({ error: 'Invalid JSON body' }, 400);
-      }
-
+      const body = (await request.json()) as { amount?: number };
       const amount = body.amount || 1;
 
       // Validate amount
@@ -102,81 +91,21 @@ async function handleScoreApi(request: Request, env: Env): Promise<Response> {
       }
 
       // Update global score
-      // No limit - scores can go beyond 9999
       const globalStr = await env.SCORE_KV.get(GLOBAL_SCORE_KEY);
-
-      // Debug: Log raw value from KV
-      console.log(
-        'Raw globalStr from KV:',
-        JSON.stringify(globalStr),
-        'type:',
-        typeof globalStr,
-      );
-
-      let currentGlobal = 0;
-      if (globalStr !== null && globalStr !== undefined) {
-        // Try parsing - KV stores strings
-        const parsed = Number(globalStr);
-        currentGlobal = isNaN(parsed) ? 0 : parsed;
-        console.log('Parsed currentGlobal:', currentGlobal);
-      }
-      const newGlobalScore = currentGlobal + amount;
-
-      console.log(
-        'Saving newGlobalScore:',
-        newGlobalScore,
-        'type:',
-        typeof newGlobalScore,
-      );
-
-      // Check if newGlobalScore is valid
-      if (!Number.isFinite(newGlobalScore)) {
-        console.error('Invalid newGlobalScore:', newGlobalScore);
-        return jsonResponse({ error: 'Invalid score calculation' }, 500);
-      }
-
-      try {
-        await env.SCORE_KV.put(GLOBAL_SCORE_KEY, String(newGlobalScore));
-        console.log('Successfully saved global score');
-      } catch (kvError) {
-        console.error('Failed to save global score to KV:', kvError);
-        throw kvError;
-      }
+      const currentGlobal = globalStr ? Number(globalStr) : 0;
+      const newGlobalScore = isNaN(currentGlobal)
+        ? amount
+        : currentGlobal + amount;
+      await env.SCORE_KV.put(GLOBAL_SCORE_KEY, String(newGlobalScore));
 
       // Update session score
-      // No limit - scores can go beyond 9999
       const sessionKey = `${SESSION_SCORE_PREFIX}${sessionId}`;
       const sessionStr = await env.SCORE_KV.get(sessionKey);
-
-      console.log(
-        'Raw sessionStr from KV:',
-        JSON.stringify(sessionStr),
-        'type:',
-        typeof sessionStr,
-      );
-
-      let currentSession = 0;
-      if (sessionStr !== null && sessionStr !== undefined) {
-        const parsed = Number(sessionStr);
-        currentSession = isNaN(parsed) ? 0 : parsed;
-        console.log('Parsed currentSession:', currentSession);
-      }
-      const newSessionScore = currentSession + amount;
-
-      console.log(
-        'Saving newSessionScore:',
-        newSessionScore,
-        'type:',
-        typeof newSessionScore,
-      );
-
-      try {
-        await env.SCORE_KV.put(sessionKey, String(newSessionScore));
-        console.log('Successfully saved session score');
-      } catch (kvError) {
-        console.error('Failed to save session score to KV:', kvError);
-        throw kvError;
-      }
+      const currentSession = sessionStr ? Number(sessionStr) : 0;
+      const newSessionScore = isNaN(currentSession)
+        ? amount
+        : currentSession + amount;
+      await env.SCORE_KV.put(sessionKey, String(newSessionScore));
 
       return jsonResponse({
         globalScore: newGlobalScore,
@@ -184,7 +113,6 @@ async function handleScoreApi(request: Request, env: Env): Promise<Response> {
         added: amount,
       });
     } catch (error) {
-      // Log error for debugging
       console.error('Error updating scores:', error);
       return jsonResponse(
         {
