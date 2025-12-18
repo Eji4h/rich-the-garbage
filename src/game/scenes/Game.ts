@@ -261,8 +261,8 @@ export class Game extends Scene {
     this.sessionScore += scoreGain;
     this.globalScore += scoreGain;
     this.pendingScore += scoreGain;
-    this.sessionScoreText.setText(this.formatScore(this.sessionScore));
-    this.globalScoreText.setText(this.formatScore(this.globalScore));
+    this.updateScoreDisplay(this.sessionScoreText, this.sessionScore, 28);
+    this.updateScoreDisplay(this.globalScoreText, this.globalScore, 32);
 
     // Play animations
     this.isAnimating = true;
@@ -335,19 +335,24 @@ export class Game extends Scene {
   }
 
   formatScore(score: number): string {
-    if (score >= 1_000_000_000) {
-      return (score / 1_000_000_000).toFixed(1).replace(/\.0$/, '') + 'B';
-    }
-    if (score >= 1_000_000) {
-      return (score / 1_000_000).toFixed(1).replace(/\.0$/, '') + 'M';
-    }
-    if (score >= 100_000) {
-      return (score / 1_000).toFixed(0) + 'K';
-    }
-    if (score >= 10_000) {
-      return (score / 1_000).toFixed(1).replace(/\.0$/, '') + 'K';
-    }
     return score.toLocaleString();
+  }
+
+  updateScoreDisplay(
+    textObject: Phaser.GameObjects.Text,
+    score: number,
+    baseSize: number,
+  ) {
+    const formatted = this.formatScore(score);
+    textObject.setText(formatted);
+
+    // Dynamically adjust font size based on number length
+    const length = formatted.length;
+    let fontSize = baseSize;
+    if (length > 7) {
+      fontSize = Math.max(16, baseSize - (length - 7) * 3);
+    }
+    textObject.setFontSize(fontSize);
   }
 
   scheduleSyncScore() {
@@ -384,8 +389,8 @@ export class Game extends Scene {
 
       this.globalScore = serverGlobal + this.pendingScore;
       this.sessionScore = serverSession + this.pendingScore;
-      this.globalScoreText.setText(this.formatScore(this.globalScore));
-      this.sessionScoreText.setText(this.formatScore(this.sessionScore));
+      this.updateScoreDisplay(this.globalScoreText, this.globalScore, 32);
+      this.updateScoreDisplay(this.sessionScoreText, this.sessionScore, 28);
     } catch (error) {
       console.error('Failed to sync score:', error);
     } finally {
@@ -407,8 +412,8 @@ export class Game extends Scene {
       const data = await response.json();
       this.globalScore = data.globalScore || 0;
       this.sessionScore = data.sessionScore || 0;
-      this.globalScoreText.setText(this.formatScore(this.globalScore));
-      this.sessionScoreText.setText(this.formatScore(this.sessionScore));
+      this.updateScoreDisplay(this.globalScoreText, this.globalScore, 32);
+      this.updateScoreDisplay(this.sessionScoreText, this.sessionScore, 28);
     } catch (error) {
       console.error('Failed to fetch scores:', error);
     }
