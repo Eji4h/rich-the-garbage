@@ -54,14 +54,14 @@ export default function GameSection() {
             className="flex flex-col items-center gap-6"
           >
             {/* Scores Display */}
-            <div className="flex gap-12 items-center">
+            <div className="flex gap-8 sm:gap-12 items-center">
               {/* Global Score */}
-              <div className="text-center">
+              <div className="text-center min-w-[140px] sm:min-w-[180px]">
                 <p className="text-slate-700 text-sm font-medium mb-1">
                   🌍 Global Score
                 </p>
                 <motion.p
-                  className="text-4xl font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent"
+                  className="text-2xl sm:text-3xl md:text-4xl font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent tabular-nums"
                   animate={{ scale: [1, 1.02, 1] }}
                   transition={{ duration: 2, repeat: Infinity }}
                 >
@@ -70,12 +70,12 @@ export default function GameSection() {
               </div>
 
               {/* Session Score */}
-              <div className="text-center">
+              <div className="text-center min-w-[140px] sm:min-w-[180px]">
                 <p className="text-slate-700 text-sm font-medium mb-1">
                   ⭐ Your Session
                 </p>
                 <motion.p
-                  className="text-4xl font-bold bg-gradient-to-r from-amber-400 to-orange-500 bg-clip-text text-transparent"
+                  className="text-2xl sm:text-3xl md:text-4xl font-bold bg-gradient-to-r from-amber-400 to-orange-500 bg-clip-text text-transparent tabular-nums"
                   animate={{ scale: [1, 1.02, 1] }}
                   transition={{ duration: 2, repeat: Infinity, delay: 0.5 }}
                 >
