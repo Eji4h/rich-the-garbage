@@ -258,11 +258,20 @@ export class Game extends Scene {
     }
 
     // Optimistic update - update UI immediately
+    // No limit - scores can go beyond 9999
     this.sessionScore += scoreGain;
     this.globalScore += scoreGain;
     this.pendingScore += scoreGain;
     this.sessionScoreText.setText(this.sessionScore.toLocaleString());
     this.globalScoreText.setText(this.globalScore.toLocaleString());
+
+    // Debug log to verify score increment
+    console.log('Score updated:', {
+      globalScore: this.globalScore,
+      sessionScore: this.sessionScore,
+      pendingScore: this.pendingScore,
+      scoreGain,
+    });
 
     // Play animations
     this.isAnimating = true;
@@ -362,7 +371,9 @@ export class Game extends Scene {
       });
       const data = await response.json();
 
-      // Add pending score to server values to prevent score going backwards
+      // Use server values (which already include the synced score)
+      // and add any new pending scores that accumulated during sync
+      // No limit - scores can go beyond 9999
       const serverGlobal = data.globalScore || 0;
       const serverSession = data.sessionScore || 0;
 
@@ -370,8 +381,19 @@ export class Game extends Scene {
       this.sessionScore = serverSession + this.pendingScore;
       this.globalScoreText.setText(this.globalScore.toLocaleString());
       this.sessionScoreText.setText(this.sessionScore.toLocaleString());
+
+      // Debug log to verify sync
+      console.log('Score synced:', {
+        serverGlobal,
+        serverSession,
+        globalScore: this.globalScore,
+        sessionScore: this.sessionScore,
+        pendingScore: this.pendingScore,
+      });
     } catch (error) {
       console.error('Failed to sync score:', error);
+      // Restore pending score on error so we can retry
+      this.pendingScore += scoreToSync;
     } finally {
       this.isSyncing = false;
 
