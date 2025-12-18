@@ -122,8 +122,26 @@ async function handleScoreApi(request: Request, env: Env): Promise<Response> {
       }
       const newGlobalScore = currentGlobal + amount;
 
-      console.log('Saving newGlobalScore:', newGlobalScore);
-      await env.SCORE_KV.put(GLOBAL_SCORE_KEY, String(newGlobalScore));
+      console.log(
+        'Saving newGlobalScore:',
+        newGlobalScore,
+        'type:',
+        typeof newGlobalScore,
+      );
+
+      // Check if newGlobalScore is valid
+      if (!Number.isFinite(newGlobalScore)) {
+        console.error('Invalid newGlobalScore:', newGlobalScore);
+        return jsonResponse({ error: 'Invalid score calculation' }, 500);
+      }
+
+      try {
+        await env.SCORE_KV.put(GLOBAL_SCORE_KEY, String(newGlobalScore));
+        console.log('Successfully saved global score');
+      } catch (kvError) {
+        console.error('Failed to save global score to KV:', kvError);
+        throw kvError;
+      }
 
       // Update session score
       // No limit - scores can go beyond 9999
@@ -145,8 +163,20 @@ async function handleScoreApi(request: Request, env: Env): Promise<Response> {
       }
       const newSessionScore = currentSession + amount;
 
-      console.log('Saving newSessionScore:', newSessionScore);
-      await env.SCORE_KV.put(sessionKey, String(newSessionScore));
+      console.log(
+        'Saving newSessionScore:',
+        newSessionScore,
+        'type:',
+        typeof newSessionScore,
+      );
+
+      try {
+        await env.SCORE_KV.put(sessionKey, String(newSessionScore));
+        console.log('Successfully saved session score');
+      } catch (kvError) {
+        console.error('Failed to save session score to KV:', kvError);
+        throw kvError;
+      }
 
       return jsonResponse({
         globalScore: newGlobalScore,
