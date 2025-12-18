@@ -3,24 +3,24 @@ import { Scene } from 'phaser';
 
 type DrinkOutcome = 'normal' | 'puke' | 'puke_bin';
 
-// Generate or get session ID
-function getSessionId(): string {
-  const SESSION_KEY = 'game_session_id';
-  let sessionId = sessionStorage.getItem(SESSION_KEY);
-  if (!sessionId) {
-    sessionId = crypto.randomUUID();
-    sessionStorage.setItem(SESSION_KEY, sessionId);
+// Generate or get device ID (persists in localStorage)
+function getDeviceId(): string {
+  const DEVICE_KEY = 'rich-garbage-device-id';
+  let deviceId = localStorage.getItem(DEVICE_KEY);
+  if (!deviceId) {
+    deviceId = crypto.randomUUID();
+    localStorage.setItem(DEVICE_KEY, deviceId);
   }
-  return sessionId;
+  return deviceId;
 }
 
 export class Game extends Scene {
   camera: Phaser.Cameras.Scene2D.Camera;
-  sessionId: string;
-  sessionScore: number = 0;
+  deviceId: string;
+  deviceScore: number = 0;
   globalScore: number = 0;
   pendingScore: number = 0;
-  sessionScoreText: Phaser.GameObjects.Text;
+  deviceScoreText: Phaser.GameObjects.Text;
   globalScoreText: Phaser.GameObjects.Text;
   character: Phaser.GameObjects.Sprite;
   particles: Phaser.GameObjects.Particles.ParticleEmitter;
@@ -48,7 +48,7 @@ export class Game extends Scene {
     this.camera = this.cameras.main;
     this.camera.setBackgroundColor(0x1a1a2e);
 
-    this.sessionId = getSessionId();
+    this.deviceId = getDeviceId();
     this.pendingScore = 0;
     this.isSyncing = false;
     this.isAnimating = false;
@@ -89,7 +89,7 @@ export class Game extends Scene {
       })
       .setOrigin(0.5);
 
-    // Session Score - Right side
+    // Device Score - Right side
     this.add
       .text(874, 80, '⭐ Your Score', {
         fontFamily: 'Arial',
@@ -98,7 +98,7 @@ export class Game extends Scene {
       })
       .setOrigin(0.5);
 
-    this.sessionScoreText = this.add
+    this.deviceScoreText = this.add
       .text(874, 115, '0', {
         fontFamily: 'Arial Black',
         fontSize: 28,
@@ -259,16 +259,16 @@ export class Game extends Scene {
 
     // Optimistic update - update UI immediately
     // No limit - scores can go beyond 9999
-    this.sessionScore += scoreGain;
+    this.deviceScore += scoreGain;
     this.globalScore += scoreGain;
     this.pendingScore += scoreGain;
-    this.sessionScoreText.setText(this.sessionScore.toLocaleString());
+    this.deviceScoreText.setText(this.deviceScore.toLocaleString());
     this.globalScoreText.setText(this.globalScore.toLocaleString());
 
     // Debug log to verify score increment
     console.log('Score updated:', {
       globalScore: this.globalScore,
-      sessionScore: this.sessionScore,
+      deviceScore: this.deviceScore,
       pendingScore: this.pendingScore,
       scoreGain,
     });
@@ -365,7 +365,7 @@ export class Game extends Scene {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-Session-ID': this.sessionId,
+          'X-Device-ID': this.deviceId,
         },
         body: JSON.stringify({ amount: scoreToSync }),
       });
@@ -375,19 +375,19 @@ export class Game extends Scene {
       // and add any new pending scores that accumulated during sync
       // No limit - scores can go beyond 9999
       const serverGlobal = data.globalScore || 0;
-      const serverSession = data.sessionScore || 0;
+      const serverDevice = data.deviceScore || 0;
 
       this.globalScore = serverGlobal + this.pendingScore;
-      this.sessionScore = serverSession + this.pendingScore;
+      this.deviceScore = serverDevice + this.pendingScore;
       this.globalScoreText.setText(this.globalScore.toLocaleString());
-      this.sessionScoreText.setText(this.sessionScore.toLocaleString());
+      this.deviceScoreText.setText(this.deviceScore.toLocaleString());
 
       // Debug log to verify sync
       console.log('Score synced:', {
         serverGlobal,
-        serverSession,
+        serverDevice,
         globalScore: this.globalScore,
-        sessionScore: this.sessionScore,
+        deviceScore: this.deviceScore,
         pendingScore: this.pendingScore,
       });
     } catch (error) {
@@ -407,14 +407,14 @@ export class Game extends Scene {
     try {
       const response = await fetch('/api/score', {
         headers: {
-          'X-Session-ID': this.sessionId,
+          'X-Device-ID': this.deviceId,
         },
       });
       const data = await response.json();
       this.globalScore = data.globalScore || 0;
-      this.sessionScore = data.sessionScore || 0;
+      this.deviceScore = data.deviceScore || 0;
       this.globalScoreText.setText(this.globalScore.toLocaleString());
-      this.sessionScoreText.setText(this.sessionScore.toLocaleString());
+      this.deviceScoreText.setText(this.deviceScore.toLocaleString());
     } catch (error) {
       console.error('Failed to fetch scores:', error);
     }
