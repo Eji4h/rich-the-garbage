@@ -3,24 +3,24 @@ import { Scene } from 'phaser';
 
 type DrinkOutcome = 'normal' | 'puke' | 'puke_bin';
 
-// Generate or get device ID (persists in localStorage)
-function getDeviceId(): string {
-  const DEVICE_KEY = 'rich-garbage-device-id';
-  let deviceId = localStorage.getItem(DEVICE_KEY);
-  if (!deviceId) {
-    deviceId = crypto.randomUUID();
-    localStorage.setItem(DEVICE_KEY, deviceId);
+// Generate or get client ID (persists in localStorage, shared with like feature)
+function getClientId(): string {
+  const CLIENT_KEY = 'rich-garbage-client-id';
+  let clientId = localStorage.getItem(CLIENT_KEY);
+  if (!clientId) {
+    clientId = crypto.randomUUID();
+    localStorage.setItem(CLIENT_KEY, clientId);
   }
-  return deviceId;
+  return clientId;
 }
 
 export class Game extends Scene {
   camera: Phaser.Cameras.Scene2D.Camera;
-  deviceId: string;
-  deviceScore: number = 0;
+  clientId: string;
+  clientScore: number = 0;
   globalScore: number = 0;
   pendingScore: number = 0;
-  deviceScoreText: Phaser.GameObjects.Text;
+  clientScoreText: Phaser.GameObjects.Text;
   globalScoreText: Phaser.GameObjects.Text;
   character: Phaser.GameObjects.Sprite;
   particles: Phaser.GameObjects.Particles.ParticleEmitter;
@@ -48,7 +48,7 @@ export class Game extends Scene {
     this.camera = this.cameras.main;
     this.camera.setBackgroundColor(0x1a1a2e);
 
-    this.deviceId = getDeviceId();
+    this.clientId = getClientId();
     this.pendingScore = 0;
     this.isSyncing = false;
     this.isAnimating = false;
@@ -98,7 +98,7 @@ export class Game extends Scene {
       })
       .setOrigin(0.5);
 
-    this.deviceScoreText = this.add
+    this.clientScoreText = this.add
       .text(874, 115, '0', {
         fontFamily: 'Arial Black',
         fontSize: 28,
@@ -259,16 +259,16 @@ export class Game extends Scene {
 
     // Optimistic update - update UI immediately
     // No limit - scores can go beyond 9999
-    this.deviceScore += scoreGain;
+    this.clientScore += scoreGain;
     this.globalScore += scoreGain;
     this.pendingScore += scoreGain;
-    this.deviceScoreText.setText(this.deviceScore.toLocaleString());
+    this.clientScoreText.setText(this.clientScore.toLocaleString());
     this.globalScoreText.setText(this.globalScore.toLocaleString());
 
     // Debug log to verify score increment
     console.log('Score updated:', {
       globalScore: this.globalScore,
-      deviceScore: this.deviceScore,
+      clientScore: this.clientScore,
       pendingScore: this.pendingScore,
       scoreGain,
     });
@@ -365,7 +365,7 @@ export class Game extends Scene {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-Device-ID': this.deviceId,
+          'X-Client-ID': this.clientId,
         },
         body: JSON.stringify({ amount: scoreToSync }),
       });
@@ -375,19 +375,19 @@ export class Game extends Scene {
       // and add any new pending scores that accumulated during sync
       // No limit - scores can go beyond 9999
       const serverGlobal = data.globalScore || 0;
-      const serverDevice = data.deviceScore || 0;
+      const serverClient = data.clientScore || 0;
 
       this.globalScore = serverGlobal + this.pendingScore;
-      this.deviceScore = serverDevice + this.pendingScore;
+      this.clientScore = serverClient + this.pendingScore;
       this.globalScoreText.setText(this.globalScore.toLocaleString());
-      this.deviceScoreText.setText(this.deviceScore.toLocaleString());
+      this.clientScoreText.setText(this.clientScore.toLocaleString());
 
       // Debug log to verify sync
       console.log('Score synced:', {
         serverGlobal,
-        serverDevice,
+        serverClient,
         globalScore: this.globalScore,
-        deviceScore: this.deviceScore,
+        clientScore: this.clientScore,
         pendingScore: this.pendingScore,
       });
     } catch (error) {
@@ -407,14 +407,14 @@ export class Game extends Scene {
     try {
       const response = await fetch('/api/score', {
         headers: {
-          'X-Device-ID': this.deviceId,
+          'X-Client-ID': this.clientId,
         },
       });
       const data = await response.json();
       this.globalScore = data.globalScore || 0;
-      this.deviceScore = data.deviceScore || 0;
+      this.clientScore = data.clientScore || 0;
       this.globalScoreText.setText(this.globalScore.toLocaleString());
-      this.deviceScoreText.setText(this.deviceScore.toLocaleString());
+      this.clientScoreText.setText(this.clientScore.toLocaleString());
     } catch (error) {
       console.error('Failed to fetch scores:', error);
     }
