@@ -60,7 +60,7 @@ export class Game extends Scene {
 
     // Title
     this.add
-      .text(512, 30, '🍺 Click to Drink!', {
+      .text(512, 30, '🍺 Tap to Drink!', {
         fontFamily: 'Arial Black',
         fontSize: 36,
         color: '#ffffff',
@@ -122,7 +122,7 @@ export class Game extends Scene {
 
     // Instructions
     this.add
-      .text(512, 540, 'Click the character to drink! 🍻', {
+      .text(512, 540, 'Tap the character to drink! 🍻', {
         fontFamily: 'Arial',
         fontSize: 16,
         color: '#64748b',
@@ -187,7 +187,7 @@ export class Game extends Scene {
     // Play idle animation
     this.character.play('idle');
 
-    // Click to drink
+    // Tap to drink
     this.character.on('pointerdown', () => {
       this.onCharacterClick();
     });

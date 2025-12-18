@@ -168,7 +168,7 @@ export default function GameSection() {
 
               {/* Instructions */}
               <p className="mt-3 text-center text-slate-700 text-sm">
-                Click the button to score! Every click adds to the global total!
+                Tap the character to drink! Every tap adds to the global total!
                 🌍
               </p>
             </motion.div>
