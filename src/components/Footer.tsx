@@ -23,7 +23,7 @@ export default function Footer() {
           href={GITHUB_URL}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-2 text-slate-600 hover:text-purple-600 transition-colors mb-4 group"
+          className="inline-flex items-center gap-2 text-slate-800 hover:text-purple-700 transition-colors mb-4 group"
         >
           <svg
             className="w-5 h-5 group-hover:scale-110 transition-transform"
@@ -41,10 +41,10 @@ export default function Footer() {
         </a>
 
         {/* Copyright */}
-        <p className="text-slate-600 font-medium mb-2">
+        <p className="text-slate-800 font-medium mb-2">
           &copy; {new Date().getFullYear()} Rich The Garbage
         </p>
-        <p className="text-sm text-slate-500">
+        <p className="text-sm text-slate-700">
           Crafted with <span className="text-pink-500">♥</span> and creativity
         </p>
       </div>
