@@ -1,18 +1,8 @@
 import { EventBus } from '../EventBus';
 import { Scene } from 'phaser';
+import { getClientId } from '../../utils/clientId';
 
 type DrinkOutcome = 'normal' | 'puke' | 'puke_bin';
-
-// Generate or get client ID (persists in localStorage, shared with like feature)
-function getClientId(): string {
-  const CLIENT_KEY = 'rich-garbage-client-id';
-  let clientId = localStorage.getItem(CLIENT_KEY);
-  if (!clientId) {
-    clientId = crypto.randomUUID();
-    localStorage.setItem(CLIENT_KEY, clientId);
-  }
-  return clientId;
-}
 
 export class Game extends Scene {
   camera: Phaser.Cameras.Scene2D.Camera;
