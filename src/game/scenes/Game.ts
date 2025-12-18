@@ -70,43 +70,43 @@ export class Game extends Scene {
       .setOrigin(0.5);
 
     // Score displays on the sides
-    // Global Score - Left side
+    // Global Score - Left side (left-aligned)
     this.add
-      .text(150, 80, '🌍 Global Score', {
+      .text(20, 80, '🌍 Global Score', {
         fontFamily: 'Arial',
         fontSize: 16,
         color: '#94a3b8',
       })
-      .setOrigin(0.5);
+      .setOrigin(0, 0.5);
 
     this.globalScoreText = this.add
-      .text(150, 115, '0', {
+      .text(20, 115, '0', {
         fontFamily: 'Arial Black',
         fontSize: 32,
         color: '#22d3ee',
         stroke: '#0891b2',
         strokeThickness: 2,
       })
-      .setOrigin(0.5);
+      .setOrigin(0, 0.5);
 
-    // Session Score - Right side
+    // Session Score - Right side (right-aligned)
     this.add
-      .text(874, 80, '⭐ Your Score', {
+      .text(1004, 80, '⭐ Your Score', {
         fontFamily: 'Arial',
         fontSize: 16,
         color: '#94a3b8',
       })
-      .setOrigin(0.5);
+      .setOrigin(1, 0.5);
 
     this.sessionScoreText = this.add
-      .text(874, 115, '0', {
+      .text(1004, 115, '0', {
         fontFamily: 'Arial Black',
         fontSize: 28,
         color: '#fbbf24',
         stroke: '#d97706',
         strokeThickness: 2,
       })
-      .setOrigin(0.5);
+      .setOrigin(1, 0.5);
 
     // Create animations
     this.createAnimations();
@@ -261,8 +261,8 @@ export class Game extends Scene {
     this.sessionScore += scoreGain;
     this.globalScore += scoreGain;
     this.pendingScore += scoreGain;
-    this.sessionScoreText.setText(this.sessionScore.toLocaleString());
-    this.globalScoreText.setText(this.globalScore.toLocaleString());
+    this.updateScoreDisplay(this.sessionScoreText, this.sessionScore, 28);
+    this.updateScoreDisplay(this.globalScoreText, this.globalScore, 32);
 
     // Play animations
     this.isAnimating = true;
@@ -334,6 +334,27 @@ export class Game extends Scene {
     }
   }
 
+  formatScore(score: number): string {
+    return score.toLocaleString();
+  }
+
+  updateScoreDisplay(
+    textObject: Phaser.GameObjects.Text,
+    score: number,
+    baseSize: number,
+  ) {
+    const formatted = this.formatScore(score);
+    textObject.setText(formatted);
+
+    // Dynamically adjust font size for very long numbers (10+ chars)
+    const length = formatted.length;
+    let fontSize = baseSize;
+    if (length > 11) {
+      fontSize = Math.max(18, baseSize - (length - 11) * 2);
+    }
+    textObject.setFontSize(fontSize);
+  }
+
   scheduleSyncScore() {
     if (this.syncTimer) {
       this.syncTimer.destroy();
@@ -368,8 +389,8 @@ export class Game extends Scene {
 
       this.globalScore = serverGlobal + this.pendingScore;
       this.sessionScore = serverSession + this.pendingScore;
-      this.globalScoreText.setText(this.globalScore.toLocaleString());
-      this.sessionScoreText.setText(this.sessionScore.toLocaleString());
+      this.updateScoreDisplay(this.globalScoreText, this.globalScore, 32);
+      this.updateScoreDisplay(this.sessionScoreText, this.sessionScore, 28);
     } catch (error) {
       console.error('Failed to sync score:', error);
     } finally {
@@ -391,8 +412,8 @@ export class Game extends Scene {
       const data = await response.json();
       this.globalScore = data.globalScore || 0;
       this.sessionScore = data.sessionScore || 0;
-      this.globalScoreText.setText(this.globalScore.toLocaleString());
-      this.sessionScoreText.setText(this.sessionScore.toLocaleString());
+      this.updateScoreDisplay(this.globalScoreText, this.globalScore, 32);
+      this.updateScoreDisplay(this.sessionScoreText, this.sessionScore, 28);
     } catch (error) {
       console.error('Failed to fetch scores:', error);
     }
