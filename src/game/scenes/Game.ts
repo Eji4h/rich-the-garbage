@@ -70,43 +70,43 @@ export class Game extends Scene {
       .setOrigin(0.5);
 
     // Score displays on the sides
-    // Global Score - Left side
+    // Global Score - Left side (left-aligned)
     this.add
-      .text(150, 80, '🌍 Global Score', {
+      .text(20, 80, '🌍 Global Score', {
         fontFamily: 'Arial',
         fontSize: 16,
         color: '#94a3b8',
       })
-      .setOrigin(0.5);
+      .setOrigin(0, 0.5);
 
     this.globalScoreText = this.add
-      .text(150, 115, '0', {
+      .text(20, 115, '0', {
         fontFamily: 'Arial Black',
         fontSize: 32,
         color: '#22d3ee',
         stroke: '#0891b2',
         strokeThickness: 2,
       })
-      .setOrigin(0.5);
+      .setOrigin(0, 0.5);
 
-    // Session Score - Right side
+    // Session Score - Right side (right-aligned)
     this.add
-      .text(874, 80, '⭐ Your Score', {
+      .text(1004, 80, '⭐ Your Score', {
         fontFamily: 'Arial',
         fontSize: 16,
         color: '#94a3b8',
       })
-      .setOrigin(0.5);
+      .setOrigin(1, 0.5);
 
     this.sessionScoreText = this.add
-      .text(874, 115, '0', {
+      .text(1004, 115, '0', {
         fontFamily: 'Arial Black',
         fontSize: 28,
         color: '#fbbf24',
         stroke: '#d97706',
         strokeThickness: 2,
       })
-      .setOrigin(0.5);
+      .setOrigin(1, 0.5);
 
     // Create animations
     this.createAnimations();
@@ -346,11 +346,11 @@ export class Game extends Scene {
     const formatted = this.formatScore(score);
     textObject.setText(formatted);
 
-    // Dynamically adjust font size based on number length
+    // Dynamically adjust font size for very long numbers (10+ chars)
     const length = formatted.length;
     let fontSize = baseSize;
-    if (length > 7) {
-      fontSize = Math.max(16, baseSize - (length - 7) * 3);
+    if (length > 11) {
+      fontSize = Math.max(18, baseSize - (length - 11) * 2);
     }
     textObject.setFontSize(fontSize);
   }
