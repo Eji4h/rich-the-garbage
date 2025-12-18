@@ -44,7 +44,11 @@ async function handleScoreApi(request: Request, env: Env): Promise<Response> {
     try {
       // Get global score
       const globalStr = await env.SCORE_KV.get(GLOBAL_SCORE_KEY);
-      const globalScore = globalStr ? Number.parseInt(globalStr, 10) : 0;
+      let globalScore = 0;
+      if (globalStr) {
+        const parsed = Number.parseInt(globalStr, 10);
+        globalScore = isNaN(parsed) ? 0 : parsed;
+      }
 
       // Get session score if sessionId provided
       let sessionScore = 0;
@@ -52,12 +56,22 @@ async function handleScoreApi(request: Request, env: Env): Promise<Response> {
         const sessionStr = await env.SCORE_KV.get(
           `${SESSION_SCORE_PREFIX}${sessionId}`,
         );
-        sessionScore = sessionStr ? Number.parseInt(sessionStr, 10) : 0;
+        if (sessionStr) {
+          const parsed = Number.parseInt(sessionStr, 10);
+          sessionScore = isNaN(parsed) ? 0 : parsed;
+        }
       }
 
       return jsonResponse({ globalScore, sessionScore });
-    } catch {
-      return jsonResponse({ error: 'Failed to get scores' }, 500);
+    } catch (error) {
+      console.error('Error getting scores:', error);
+      return jsonResponse(
+        {
+          error: 'Failed to get scores',
+          details: error instanceof Error ? error.message : 'Unknown error',
+        },
+        500,
+      );
     }
   }
 
@@ -68,31 +82,87 @@ async function handleScoreApi(request: Request, env: Env): Promise<Response> {
     }
 
     try {
-      const body = (await request.json()) as { amount?: number };
+      // Debug: Log incoming request
+      console.log('POST /api/score - sessionId:', sessionId);
+
+      let body: { amount?: number };
+      try {
+        body = (await request.json()) as { amount?: number };
+        console.log('Request body:', JSON.stringify(body));
+      } catch (parseError) {
+        console.error('Failed to parse request body:', parseError);
+        return jsonResponse({ error: 'Invalid JSON body' }, 400);
+      }
+
       const amount = body.amount || 1;
+
+      // Validate amount
+      if (typeof amount !== 'number' || isNaN(amount) || amount < 0) {
+        return jsonResponse({ error: 'Invalid amount' }, 400);
+      }
 
       // Update global score
       // No limit - scores can go beyond 9999
       const globalStr = await env.SCORE_KV.get(GLOBAL_SCORE_KEY);
-      const currentGlobal = globalStr ? Number.parseInt(globalStr, 10) : 0;
+
+      // Debug: Log raw value from KV
+      console.log(
+        'Raw globalStr from KV:',
+        JSON.stringify(globalStr),
+        'type:',
+        typeof globalStr,
+      );
+
+      let currentGlobal = 0;
+      if (globalStr !== null && globalStr !== undefined) {
+        // Try parsing - KV stores strings
+        const parsed = Number(globalStr);
+        currentGlobal = isNaN(parsed) ? 0 : parsed;
+        console.log('Parsed currentGlobal:', currentGlobal);
+      }
       const newGlobalScore = currentGlobal + amount;
-      await env.SCORE_KV.put(GLOBAL_SCORE_KEY, newGlobalScore.toString());
+
+      console.log('Saving newGlobalScore:', newGlobalScore);
+      await env.SCORE_KV.put(GLOBAL_SCORE_KEY, String(newGlobalScore));
 
       // Update session score
       // No limit - scores can go beyond 9999
       const sessionKey = `${SESSION_SCORE_PREFIX}${sessionId}`;
       const sessionStr = await env.SCORE_KV.get(sessionKey);
-      const currentSession = sessionStr ? Number.parseInt(sessionStr, 10) : 0;
+
+      console.log(
+        'Raw sessionStr from KV:',
+        JSON.stringify(sessionStr),
+        'type:',
+        typeof sessionStr,
+      );
+
+      let currentSession = 0;
+      if (sessionStr !== null && sessionStr !== undefined) {
+        const parsed = Number(sessionStr);
+        currentSession = isNaN(parsed) ? 0 : parsed;
+        console.log('Parsed currentSession:', currentSession);
+      }
       const newSessionScore = currentSession + amount;
-      await env.SCORE_KV.put(sessionKey, newSessionScore.toString());
+
+      console.log('Saving newSessionScore:', newSessionScore);
+      await env.SCORE_KV.put(sessionKey, String(newSessionScore));
 
       return jsonResponse({
         globalScore: newGlobalScore,
         sessionScore: newSessionScore,
         added: amount,
       });
-    } catch {
-      return jsonResponse({ error: 'Failed to update scores' }, 500);
+    } catch (error) {
+      // Log error for debugging
+      console.error('Error updating scores:', error);
+      return jsonResponse(
+        {
+          error: 'Failed to update scores',
+          details: error instanceof Error ? error.message : 'Unknown error',
+        },
+        500,
+      );
     }
   }
 
