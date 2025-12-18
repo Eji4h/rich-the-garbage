@@ -36,7 +36,7 @@ export class Game extends Scene {
     // Load spritesheet: 6 columns x 4 rows, 256px each frame
     this.load.spritesheet(
       'character',
-      'assets/spritesheet_sitting_256_6x4.png',
+      'phaser/spritesheet_sitting_256_6x4.png',
       {
         frameWidth: 256,
         frameHeight: 256,
