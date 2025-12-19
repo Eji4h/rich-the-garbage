@@ -1,0 +1,76 @@
+# Cursor Rules for Rich The Garbage
+
+## Project Overview
+
+This is a Phaser.js game project called "Rich The Garbage" that combines:
+
+- Phaser 3.90.0 for game development
+- React 19.0.0 for UI components
+- TypeScript 5.7.2 for type safety
+- Vite 6.3.1 for bundling
+- Cloudflare Workers for backend API
+- Tailwind CSS 4.1.18 for styling
+
+## Code Style Guidelines
+
+### TypeScript
+
+- Always use TypeScript with proper type annotations
+- Prefer explicit types over `any`
+- Use interfaces for object shapes, types for unions/intersections
+- Follow the existing code style patterns
+
+### Formatting
+
+- Use Prettier configuration: single quotes, 2-space tabs, trailing commas
+- Run `pnpm format` before committing
+- Maximum line width: 80 characters
+
+### React Components
+
+- Use functional components with hooks
+- Follow React 19 patterns
+- Use `clsx` and `tailwind-merge` for conditional className handling
+- Prefer composition over complex prop drilling
+
+### Phaser.js
+
+- Follow Phaser 3.90.0 API patterns
+- Use Phaser Scene classes for game scenes
+- Properly manage Phaser lifecycle (create, update, destroy)
+- Clean up resources when scenes are destroyed
+- Use Phaser's built-in physics and input systems
+
+### File Organization
+
+- Game code in `src/game/`
+- React components in `src/components/`
+- Worker/API code in `worker/`
+- Shared utilities in `src/utils/`
+
+### Error Handling
+
+- Use try-catch blocks for async operations
+- Provide meaningful error messages
+- Log errors appropriately (console.error for development)
+
+### Best Practices
+
+- Keep functions focused and single-purpose
+- Use meaningful variable and function names
+- Comment complex logic, especially game mechanics
+- Follow existing patterns in the codebase
+- Ensure code passes ESLint checks (`pnpm lint`)
+
+## Cloudflare Workers
+
+- Use TypeScript with `@cloudflare/workers-types`
+- Handle KV namespace operations properly
+- Follow Cloudflare Workers best practices for request/response handling
+
+## Testing & Quality
+
+- Code should pass ESLint (`pnpm lint`)
+- Code should pass Prettier formatting checks (`pnpm format:check`)
+- Test game functionality in development mode before committing
+
