@@ -1,3 +1,4 @@
+import { Scene } from 'phaser';
 import { ObservableScore } from './ObservableScore';
 import { Score } from './ports/Score.port';
 
@@ -7,10 +8,10 @@ export class ScoreSync {
   private isSyncing: boolean = false;
 
   constructor(
+    private readonly scene: Scene,
     private readonly scorePort: Score,
     private readonly clientScore: ObservableScore,
     private readonly globalScore: ObservableScore,
-    private readonly time: Phaser.Time.Clock,
   ) {}
 
   addPendingScore(amount: number): void {
@@ -34,7 +35,7 @@ export class ScoreSync {
       this.syncTimer.destroy();
     }
 
-    this.syncTimer = this.time.delayedCall(300, () => {
+    this.syncTimer = this.scene.time.delayedCall(300, () => {
       this.syncScore();
     });
   }
