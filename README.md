@@ -1,8 +1,10 @@
 # Rich The Garbage 🗑️✨
 
+🌐 **[Live Website](https://rich-the-garbage.com/)** | 📦 **[GitHub Repository](https://github.com/Eji4h/rich-the-garbage)**
+
 A beautiful, interactive photo and video gallery built with Phaser.js, React, and TypeScript. Features a fun game component, like functionality, and a stunning UI with smooth animations.
 
-![Rich The Garbage](screenshot.png)
+![Rich The Garbage](public/rich-profile.png)
 
 ## 🌟 Features
 
@@ -35,17 +37,20 @@ A beautiful, interactive photo and video gallery built with Phaser.js, React, an
 ### Installation
 
 1. Clone the repository:
+
 ```bash
-git clone https://github.com/yourusername/rich-the-garbage.git
+git clone https://github.com/Eji4h/rich-the-garbage.git
 cd rich-the-garbage
 ```
 
 2. Install dependencies:
+
 ```bash
 pnpm install
 ```
 
 3. Start the development server:
+
 ```bash
 pnpm dev
 ```
@@ -59,6 +64,7 @@ pnpm build
 ```
 
 This will:
+
 - Generate asset lists automatically (via `prebuild` hook)
 - Create an optimized production build in the `dist` folder
 
@@ -103,17 +109,17 @@ rich-the-garbage/
 
 ## 🎮 Available Commands
 
-| Command               | Description                                    |
-| --------------------- | ---------------------------------------------- |
-| `pnpm install`        | Install project dependencies                    |
-| `pnpm dev`            | Launch development server                      |
-| `pnpm build`          | Create production build                        |
-| `pnpm preview`        | Preview production build                       |
-| `pnpm lint`           | Run ESLint                                     |
-| `pnpm lint:fix`       | Fix ESLint errors automatically                |
-| `pnpm format`         | Format code with Prettier                      |
-| `pnpm format:check`   | Check code formatting                          |
-| `pnpm generate:assets`| Generate asset TypeScript files                |
+| Command                | Description                     |
+| ---------------------- | ------------------------------- |
+| `pnpm install`         | Install project dependencies    |
+| `pnpm dev`             | Launch development server       |
+| `pnpm build`           | Create production build         |
+| `pnpm preview`         | Preview production build        |
+| `pnpm lint`            | Run ESLint                      |
+| `pnpm lint:fix`        | Fix ESLint errors automatically |
+| `pnpm format`          | Format code with Prettier       |
+| `pnpm format:check`    | Check code formatting           |
+| `pnpm generate:assets` | Generate asset TypeScript files |
 
 ## 🎨 Adding Assets
 
@@ -138,13 +144,15 @@ We welcome contributions during Hacktoberfest and throughout the year! Here's ho
 ### 🎯 How to Contribute
 
 1. **Fork the repository**
+
    ```bash
    # Click the "Fork" button on GitHub, then:
-   git clone https://github.com/yourusername/rich-the-garbage.git
+   git clone https://github.com/<yourusername>/rich-the-garbage.git
    cd rich-the-garbage
    ```
 
 2. **Create a branch**
+
    ```bash
    git checkout -b feature/your-feature-name
    # or
@@ -158,6 +166,7 @@ We welcome contributions during Hacktoberfest and throughout the year! Here's ho
    - Test your changes locally
 
 4. **Commit your changes**
+
    ```bash
    git add .
    git commit -m "feat: add your feature description"
@@ -179,6 +188,7 @@ We welcome contributions during Hacktoberfest and throughout the year! Here's ho
 ### 🎁 Good First Issues
 
 Look for issues labeled with:
+
 - `good first issue` - Perfect for beginners
 - `hacktoberfest` - Hacktoberfest-specific contributions
 - `help wanted` - Areas where we need help
@@ -222,6 +232,7 @@ Before submitting your PR, make sure:
 ### 🏷️ Hacktoberfest Labels
 
 We use these labels to help contributors:
+
 - `hacktoberfest` - Valid for Hacktoberfest
 - `good first issue` - Great for first-time contributors
 - `help wanted` - We'd love help with this
@@ -232,6 +243,7 @@ We use these labels to help contributors:
 ### 🎉 Recognition
 
 All valid contributions will be:
+
 - Reviewed promptly
 - Merged if they meet our standards
 - Counted toward Hacktoberfest (if submitted during October)
@@ -243,54 +255,6 @@ All valid contributions will be:
 - Check existing issues and PRs for similar problems
 - Review the codebase to understand patterns
 - Ask in your PR comments - we're happy to help!
-
-## 🔧 Development
-
-### React-Phaser Bridge
-
-The project uses an EventBus to communicate between React and Phaser:
-
-```typescript
-// In React
-import { EventBus } from './game/EventBus';
-
-EventBus.emit('event-name', data);
-
-// In Phaser
-EventBus.on('event-name', (data) => {
-  // Handle the event
-});
-```
-
-### Phaser Scene Setup
-
-When creating a new Phaser Scene, emit the `current-scene-ready` event:
-
-```typescript
-class MyScene extends Phaser.Scene {
-  create() {
-    // Your game logic here
-    
-    // Expose scene to React
-    EventBus.emit('current-scene-ready', this);
-  }
-}
-```
-
-### Asset Loading
-
-Assets can be loaded in two ways:
-
-1. **Imported assets** (bundled):
-```typescript
-import logoImg from './assets/logo.png';
-this.load.image('logo', logoImg);
-```
-
-2. **Static assets** (from `public/`):
-```typescript
-this.load.image('background', 'assets/bg.png');
-```
 
 ## 📄 License
 
@@ -305,9 +269,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🌐 Links
 
-- **Live Demo**: [Add your live demo URL here]
-- **GitHub Repository**: [Add your GitHub repo URL here]
-- **Issues**: [Add your issues URL here]
+- **Live Demo**: https://rich-the-garbage.com/
+- **GitHub Repository**: https://github.com/Eji4h/rich-the-garbage
+- **Issues**: https://github.com/Eji4h/rich-the-garbage/issues
 
 ---
 
