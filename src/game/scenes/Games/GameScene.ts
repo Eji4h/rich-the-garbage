@@ -7,28 +7,32 @@ import { DrinkOutCome, DrinkOutComesScoreDict } from './DrinkOutComes';
 import { RandomDrinkOutCome } from './ports/RandomDrinkOutCome.port';
 import { ObservableScore } from './ObservableScore';
 import { Score } from './ports/Score.port';
+import { ScoreSync } from './ScoreSync';
 
 export class GameScene extends Scene {
-  public static readonly SCENE_NAME = 'Game';
+  public static readonly SceneName = 'Game';
 
   public readonly clientScore = new ObservableScore(0);
   public readonly globalScore = new ObservableScore(0);
-  private pendingScore: number = 0;
 
   private particles: Phaser.GameObjects.Particles.ParticleEmitter;
-  private syncTimer: Phaser.Time.TimerEvent | null = null;
-  private isSyncing: boolean = false;
-
   private readonly character: Character;
   private readonly gui: GameSceneGui;
+  private readonly scoreSync: ScoreSync;
 
   constructor(
     private readonly randomDrinkOutComePort: RandomDrinkOutCome,
     private readonly scorePort: Score,
   ) {
-    super(GameScene.SCENE_NAME);
+    super(GameScene.SceneName);
     this.character = new Character(this);
     this.gui = new GameSceneGui(this);
+    this.scoreSync = new ScoreSync(
+      this.scorePort,
+      this.clientScore,
+      this.globalScore,
+      this.time,
+    );
   }
 
   preload() {
@@ -39,26 +43,9 @@ export class GameScene extends Scene {
     this.character.create();
     this.gui.create();
     this.createParticles();
-    this.fetchScores();
+    this.scoreSync.fetchScores();
 
     EventBus.emit('current-scene-ready', this);
-  }
-
-  createParticles() {
-    // Create a simple circle texture for particles
-    const graphics = this.add.graphics();
-    graphics.fillStyle(0xffffff, 1);
-    graphics.fillCircle(8, 8, 8);
-    graphics.generateTexture('particle', 16, 16);
-    graphics.destroy();
-
-    this.particles = this.add.particles(512, 300, 'particle', {
-      speed: { min: 100, max: 300 },
-      scale: { start: 0.5, end: 0 },
-      lifespan: 500,
-      tint: [0xfbbf24, 0xe94560, 0x22d3ee, 0x10b981],
-      emitting: false,
-    });
   }
 
   onCharacterClick() {
@@ -68,7 +55,7 @@ export class GameScene extends Scene {
     // Optimistic update - observers will be notified automatically
     this.clientScore.add(scoreGain);
     this.globalScore.add(scoreGain);
-    this.pendingScore += scoreGain;
+    this.scoreSync.addPendingScore(scoreGain);
 
     match(outcome)
       .with(DrinkOutCome.puke, () => {
@@ -86,69 +73,22 @@ export class GameScene extends Scene {
 
     // Floating score text
     this.gui.playFloatingText(outcome, scoreGain);
-
-    // Debounce sync
-    this.scheduleSyncScore();
   }
 
-  scheduleSyncScore() {
-    if (this.syncTimer) {
-      this.syncTimer.destroy();
-    }
+  private createParticles() {
+    // Create a simple circle texture for particles
+    const graphics = this.add.graphics();
+    graphics.fillStyle(0xffffff, 1);
+    graphics.fillCircle(8, 8, 8);
+    graphics.generateTexture('particle', 16, 16);
+    graphics.destroy();
 
-    this.syncTimer = this.time.delayedCall(300, () => {
-      this.syncScore();
+    this.particles = this.add.particles(512, 300, 'particle', {
+      speed: { min: 100, max: 300 },
+      scale: { start: 0.5, end: 0 },
+      lifespan: 500,
+      tint: [0xfbbf24, 0xe94560, 0x22d3ee, 0x10b981],
+      emitting: false,
     });
-  }
-
-  async syncScore() {
-    if (this.isSyncing || this.pendingScore === 0) return;
-
-    const scoreToSync = this.pendingScore;
-    this.pendingScore = 0;
-    this.isSyncing = true;
-
-    try {
-      const data = await this.scorePort.addScore(scoreToSync);
-
-      // Use server values (which already include the synced score)
-      // and add any new pending scores that accumulated during sync
-      const serverGlobal = data.globalScore || 0;
-      const serverClient = data.clientScore || 0;
-
-      // Observers will be notified automatically
-      this.globalScore.value = serverGlobal + this.pendingScore;
-      this.clientScore.value = serverClient + this.pendingScore;
-
-      // Debug log to verify sync
-      console.log('Score synced:', {
-        serverGlobal,
-        serverClient,
-        globalScore: this.globalScore.value,
-        clientScore: this.clientScore.value,
-        pendingScore: this.pendingScore,
-      });
-    } catch (error) {
-      console.error('Failed to sync score:', error);
-      // Restore pending score on error so we can retry
-      this.pendingScore += scoreToSync;
-    } finally {
-      this.isSyncing = false;
-
-      if (this.pendingScore > 0) {
-        this.scheduleSyncScore();
-      }
-    }
-  }
-
-  async fetchScores() {
-    try {
-      const data = await this.scorePort.getScore();
-      // Observers will be notified automatically
-      this.globalScore.value = data.globalScore || 0;
-      this.clientScore.value = data.clientScore || 0;
-    } catch (error) {
-      console.error('Failed to fetch scores:', error);
-    }
   }
 }

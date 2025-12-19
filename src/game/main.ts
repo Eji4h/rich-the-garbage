@@ -22,10 +22,10 @@ const StartGame = (parent: string) => {
   const randomDrinkOutCome = new RandomDrinkOutComeImpl();
   const scoreRepository = new ScoreApi();
   game.scene.add(
-    GameScene.SCENE_NAME,
+    GameScene.SceneName,
     new GameScene(randomDrinkOutCome, scoreRepository),
   );
-  game.scene.start(GameScene.SCENE_NAME);
+  game.scene.start(GameScene.SceneName);
   return game;
 };
 
