@@ -33,6 +33,7 @@ jobs:
         id: check
         uses: actions/github-script@v7
         with:
+          github-token: ${{ secrets.AUTO_APPROVE_TOKEN }}
           script: |
             const prNumber = ${{ steps.pr.outputs.number }};
             const { data: reviews } = await github.rest.pulls.listReviews({
@@ -52,7 +53,7 @@ jobs:
         if: steps.check.outputs.approved == 'false'
         uses: actions/github-script@v7
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ secrets.AUTO_APPROVE_TOKEN }}
           script: |
             const prNumber = ${{ steps.pr.outputs.number }};
             await github.rest.pulls.createReview({
