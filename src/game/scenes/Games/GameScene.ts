@@ -23,6 +23,7 @@ export class GameScene extends Scene {
     super('Game');
     this.character = new Character(this);
     this.gui = new GameSceneGui(this);
+    this.clientId = getClientId();
   }
 
   preload() {
@@ -30,18 +31,10 @@ export class GameScene extends Scene {
   }
 
   create() {
-    this.camera = this.cameras.main;
-    const backgroundColor = 0x1a1a2e;
-    this.camera.setBackgroundColor(backgroundColor);
-
-    this.clientId = getClientId();
-    this.pendingScore = 0;
-    this.isSyncing = false;
-
-    // Create gradient-like background
-    const bgGradient = this.add.graphics();
-    bgGradient.fillGradientStyle(0x1a1a2e, 0x1a1a2e, 0x16213e, 0x16213e, 1);
-    bgGradient.fillRect(0, 0, 1024, 576);
+    // // Create gradient-like background
+    // const bgGradient = this.add.graphics();
+    // bgGradient.fillGradientStyle(0x1a1a2e, 0x1a1a2e, 0x16213e, 0x16213e, 1);
+    // bgGradient.fillRect(0, 0, 1024, 576);
     this.character.create();
     this.gui.create();
 
