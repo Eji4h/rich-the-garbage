@@ -6,7 +6,7 @@ export default function Hacktoberfest() {
   return (
     <section className="relative py-20 overflow-hidden">
       {/* Animated background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-[#183d3d] via-[#1e5162] to-[#183d3d]">
+      <div className="absolute inset-0 bg-linear-to-br from-[#183d3d] via-[#1e5162] to-[#183d3d]">
         {/* Hacktoberfest-inspired floating elements */}
         <motion.div
           animate={{
@@ -65,7 +65,7 @@ export default function Hacktoberfest() {
               transition={{ duration: 2, repeat: Infinity }}
               className="absolute inset-0 rounded-full"
             />
-            <div className="relative bg-gradient-to-br from-[#ff8ae2] via-[#9c4668] to-[#183d3d] p-1 rounded-full">
+            <div className="relative bg-linear-to-br from-[#ff8ae2] via-[#9c4668] to-[#183d3d] p-1 rounded-full">
               <div className="bg-[#183d3d] px-6 py-3 rounded-full">
                 <span className="text-[#ff8ae2] font-bold text-lg tracking-wider">
                   🎃 HACKTOBERFEST

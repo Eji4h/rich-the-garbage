@@ -85,7 +85,7 @@ export default function HeroCarousel() {
             onEnded={handleVideoEnd}
             className="h-full w-full object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/50 to-zinc-950" />
+          <div className="absolute inset-0 bg-linear-to-b from-black/30 via-black/50 to-zinc-950" />
         </motion.div>
       </AnimatePresence>
 
