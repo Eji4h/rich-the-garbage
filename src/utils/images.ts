@@ -1,4 +1,7 @@
 // Gallery images from public/gallery/
+// This file is auto-generated. Do not edit manually.
+// Run 'pnpm generate:assets' to regenerate.
+
 export const galleryImages: string[] = [
   '/gallery/20240420_042202.jpg',
   '/gallery/20240420_042203.jpg',
