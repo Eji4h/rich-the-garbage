@@ -1,4 +1,4 @@
-import { DrinkOutcome } from '../DrinkOutComes';
+import { DrinkOutcomeType } from '../DrinkOutComes';
 import { FloatingTextGui } from './FloatingTextGui';
 import { GameScene } from '../GameScene';
 
@@ -27,7 +27,7 @@ export class GameSceneGui {
     this.globalScoreText.setText(score.toLocaleString());
   }
 
-  playFloatingText(outcome: DrinkOutcome, score: number) {
+  playFloatingText(outcome: DrinkOutcomeType, score: number) {
     this.floatingText.play(outcome, score);
   }
 

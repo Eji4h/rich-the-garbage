@@ -1,5 +1,5 @@
 import { match } from 'ts-pattern';
-import { DrinkOutcome } from '../DrinkOutComes';
+import { DrinkOutcomeType } from '../DrinkOutComes';
 
 export class FloatingTextGui {
   private text: Phaser.GameObjects.Text;
@@ -20,7 +20,7 @@ export class FloatingTextGui {
     this.text.setVisible(false);
   }
 
-  play(outcome: DrinkOutcome, score: number) {
+  play(outcome: DrinkOutcomeType, score: number) {
     const floatingScoreText = this.getScoreText(outcome, score);
     const floatingScoreColor = this.getScoreColor(outcome);
 
@@ -47,14 +47,14 @@ export class FloatingTextGui {
     });
   }
 
-  private getScoreText(outcome: DrinkOutcome, score: number): string {
+  private getScoreText(outcome: DrinkOutcomeType, score: number): string {
     return match(outcome)
       .with('puke_bin', () => `+${score} 🗑️🤮`)
       .with('puke', () => `+${score} 🤮`)
       .otherwise(() => `+${score} 🍺`);
   }
 
-  private getScoreColor(outcome: DrinkOutcome): string {
+  private getScoreColor(outcome: DrinkOutcomeType): string {
     return match(outcome)
       .with('puke_bin', () => '#10b981') // Green - best!
       .with('puke', () => '#a855f7') // Purple
