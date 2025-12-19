@@ -59,19 +59,24 @@ jobs:
               review => review.state === 'APPROVED' && review.user.type === 'User'
             );
 
-            core.setOutput('approved', hasApproval);
-            core.setOutput('isOwnPR', isOwnPR);
+            // Set outputs as strings for GitHub Actions
+            core.setOutput('approved', String(hasApproval));
+            core.setOutput('isOwnPR', String(isOwnPR));
 
             if (isOwnPR) {
               console.log(`⚠️ Skipping auto-approval: PR author (${prAuthor}) is the repository owner. GitHub doesn't allow self-approval.`);
+            } else if (hasApproval) {
+              console.log(`ℹ️ PR #${prNumber} is already approved.`);
+            } else {
+              console.log(`✅ PR #${prNumber} from ${prAuthor} will be auto-approved.`);
             }
 
             return { hasApproval, isOwnPR };
 
       - name: Auto approve PR
         if: |
-          steps.check.outputs.approved == 'false' &&
-          steps.check.outputs.isOwnPR == 'false'
+          steps.check.outputs.approved != 'true' &&
+          steps.check.outputs.isOwnPR != 'true'
         env:
           GH_TOKEN: ${{ secrets.AUTO_APPROVE_TOKEN }}
         run: |
