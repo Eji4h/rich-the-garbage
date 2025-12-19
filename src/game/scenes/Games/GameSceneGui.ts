@@ -12,7 +12,26 @@ export class GameSceneGui {
   }
 
   create() {
-    // Title
+    this.createTitle();
+    this.createGlobalScoreDisplay();
+    this.createInstructions();
+    this.createClientScoreDisplay();
+    this.floatingText.create();
+  }
+
+  updateClientScore(score: number) {
+    this.clientScoreText.setText(score.toLocaleString());
+  }
+
+  updateGlobalScore(score: number) {
+    this.globalScoreText.setText(score.toLocaleString());
+  }
+
+  playFloatingText(outcome: DrinkOutcome, score: number) {
+    this.floatingText.play(outcome, score);
+  }
+
+  private createTitle() {
     this.scene.add
       .text(512, 30, '🍺 Tap to Drink!', {
         fontFamily: 'Arial Black',
@@ -22,9 +41,9 @@ export class GameSceneGui {
         strokeThickness: 4,
       })
       .setOrigin(0.5);
+  }
 
-    // Score displays on the sides
-    // Global Score - Left side
+  private createGlobalScoreDisplay() {
     this.scene.add
       .text(150, 80, '🌍 Global Score', {
         fontFamily: 'Arial',
@@ -42,8 +61,9 @@ export class GameSceneGui {
         strokeThickness: 2,
       })
       .setOrigin(0.5);
+  }
 
-    // Instructions
+  private createInstructions() {
     this.scene.add
       .text(512, 540, 'Tap the character to drink! 🍻', {
         fontFamily: 'Arial',
@@ -51,8 +71,9 @@ export class GameSceneGui {
         color: '#64748b',
       })
       .setOrigin(0.5);
+  }
 
-    // Device Score - Right side
+  private createClientScoreDisplay() {
     this.scene.add
       .text(874, 80, '⭐ Your Score', {
         fontFamily: 'Arial',
@@ -70,19 +91,5 @@ export class GameSceneGui {
         strokeThickness: 2,
       })
       .setOrigin(0.5);
-
-    this.floatingText.create();
-  }
-
-  updateClientScore(score: number) {
-    this.clientScoreText.setText(score.toLocaleString());
-  }
-
-  updateGlobalScore(score: number) {
-    this.globalScoreText.setText(score.toLocaleString());
-  }
-
-  playFloatingText(outcome: DrinkOutcome, score: number) {
-    this.floatingText.play(outcome, score);
   }
 }
