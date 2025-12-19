@@ -2,7 +2,7 @@ const GITHUB_URL = 'https://github.com/Eji4h/rich-the-garbage';
 
 export default function Footer() {
   return (
-    <footer className="relative py-16 text-center overflow-hidden bg-gradient-to-br from-purple-100/50 via-pink-100/50 to-blue-100/50 backdrop-blur-sm">
+    <footer className="relative py-16 text-center overflow-hidden bg-linear-to-br from-purple-100/50 via-pink-100/50 to-blue-100/50 backdrop-blur-sm">
       {/* Animated background orbs */}
       <div className="absolute top-0 left-1/4 w-64 h-64 bg-purple-300/20 rounded-full blur-3xl animate-pulse"></div>
       <div
@@ -13,9 +13,9 @@ export default function Footer() {
       <div className="relative z-10">
         {/* Divider */}
         <div className="flex items-center justify-center gap-4 mb-6">
-          <div className="h-px w-24 bg-gradient-to-r from-transparent via-purple-400 to-transparent"></div>
+          <div className="h-px w-24 bg-linear-to-r from-transparent via-purple-400 to-transparent"></div>
           <div className="w-2 h-2 rounded-full bg-purple-400"></div>
-          <div className="h-px w-24 bg-gradient-to-r from-transparent via-pink-400 to-transparent"></div>
+          <div className="h-px w-24 bg-linear-to-r from-transparent via-pink-400 to-transparent"></div>
         </div>
 
         {/* GitHub Link */}
