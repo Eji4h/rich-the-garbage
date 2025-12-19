@@ -3,7 +3,7 @@ import { Scene } from 'phaser';
 import { getClientId } from '../../../utils/clientId';
 import { Character } from './Character';
 import { match } from 'ts-pattern';
-import { GameSceneGui } from './GameSceneGUI';
+import { GameSceneGui } from './GameSceneGui';
 import { DrinkOutcome, DrinkOutComes } from './DrinkOutComes';
 
 export class GameScene extends Scene {
