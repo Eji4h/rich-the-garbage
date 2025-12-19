@@ -1,4 +1,4 @@
-import { Game as MainGame } from './scenes/Game';
+import { GameScene as MainGame } from './scenes/Games/GameScene';
 import { AUTO, Game, Scale } from 'phaser';
 
 //  Find out more information about the Game Config at:
