@@ -17,18 +17,21 @@ export class GameSceneGui {
     this.createInstructions();
     this.createClientScoreDisplay();
     this.floatingText.create();
-  }
-
-  updateClientScore(score: number) {
-    this.clientScoreText.setText(score.toLocaleString());
-  }
-
-  updateGlobalScore(score: number) {
-    this.globalScoreText.setText(score.toLocaleString());
+    this.subscribeToScores();
   }
 
   playFloatingText(outcome: DrinkOutcomeType, score: number) {
     this.floatingText.play(outcome, score);
+  }
+
+  private subscribeToScores() {
+    this.scene.clientScore.subscribe((score) => {
+      this.clientScoreText.setText(score.toLocaleString());
+    });
+
+    this.scene.globalScore.subscribe((score) => {
+      this.globalScoreText.setText(score.toLocaleString());
+    });
   }
 
   private createTitle() {

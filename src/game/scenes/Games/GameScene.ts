@@ -6,17 +6,18 @@ import { match } from 'ts-pattern';
 import { GameSceneGui } from './gui/GameSceneGui';
 import { DrinkOutCome, DrinkOutComesScoreDict } from './DrinkOutComes';
 import { RandomDrinkOutCome } from './ports/RandomDrinkOutCome.port';
+import { ObservableScore } from './ObservableScore';
 
 export class GameScene extends Scene {
   public static readonly SCENE_NAME = 'Game';
 
-  clientId: string;
-  clientScore: number = 0;
-  globalScore: number = 0;
-  pendingScore: number = 0;
-  particles: Phaser.GameObjects.Particles.ParticleEmitter;
-  syncTimer: Phaser.Time.TimerEvent | null = null;
-  isSyncing: boolean = false;
+  private readonly clientId: string;
+  public readonly clientScore = new ObservableScore(0);
+  public readonly globalScore = new ObservableScore(0);
+  private pendingScore: number = 0;
+  private particles: Phaser.GameObjects.Particles.ParticleEmitter;
+  private syncTimer: Phaser.Time.TimerEvent | null = null;
+  private isSyncing: boolean = false;
 
   private readonly character: Character;
   private readonly gui: GameSceneGui;
@@ -62,17 +63,15 @@ export class GameScene extends Scene {
     const outcome = this.randomDrinkOutCome.randomDrinkOutCome();
     const scoreGain = DrinkOutComesScoreDict[outcome];
 
-    // Optimistic update - update UI immediately
-    this.clientScore += scoreGain;
-    this.globalScore += scoreGain;
+    // Optimistic update - observers will be notified automatically
+    this.clientScore.add(scoreGain);
+    this.globalScore.add(scoreGain);
     this.pendingScore += scoreGain;
-    this.gui.updateClientScore(this.clientScore);
-    this.gui.updateGlobalScore(this.globalScore);
 
     // Debug log to verify score increment
     console.log('Score updated:', {
-      globalScore: this.globalScore,
-      clientScore: this.clientScore,
+      globalScore: this.globalScore.value,
+      clientScore: this.clientScore.value,
       pendingScore: this.pendingScore,
       scoreGain,
     });
@@ -132,17 +131,16 @@ export class GameScene extends Scene {
       const serverGlobal = data.globalScore || 0;
       const serverClient = data.clientScore || 0;
 
-      this.globalScore = serverGlobal + this.pendingScore;
-      this.clientScore = serverClient + this.pendingScore;
-      this.gui.updateGlobalScore(this.globalScore);
-      this.gui.updateClientScore(this.clientScore);
+      // Observers will be notified automatically
+      this.globalScore.value = serverGlobal + this.pendingScore;
+      this.clientScore.value = serverClient + this.pendingScore;
 
       // Debug log to verify sync
       console.log('Score synced:', {
         serverGlobal,
         serverClient,
-        globalScore: this.globalScore,
-        clientScore: this.clientScore,
+        globalScore: this.globalScore.value,
+        clientScore: this.clientScore.value,
         pendingScore: this.pendingScore,
       });
     } catch (error) {
@@ -166,10 +164,9 @@ export class GameScene extends Scene {
         },
       });
       const data = await response.json();
-      this.globalScore = data.globalScore || 0;
-      this.clientScore = data.clientScore || 0;
-      this.gui.updateGlobalScore(this.globalScore);
-      this.gui.updateClientScore(this.clientScore);
+      // Observers will be notified automatically
+      this.globalScore.value = data.globalScore || 0;
+      this.clientScore.value = data.clientScore || 0;
     } catch (error) {
       console.error('Failed to fetch scores:', error);
     }
