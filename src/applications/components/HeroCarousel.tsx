@@ -94,7 +94,7 @@ export default function HeroCarousel() {
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.3, duration: 0.8 }}
-          className="text-6xl md:text-8xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white via-purple-200 to-purple-400 mb-6 drop-shadow-lg"
+          className="text-6xl md:text-8xl font-extrabold tracking-tight text-transparent bg-clip-text bg-linear-to-r from-white via-purple-200 to-purple-400 mb-6 drop-shadow-lg"
         >
           Rich The Garbage
         </motion.h1>
