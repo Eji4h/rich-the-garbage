@@ -1,0 +1,95 @@
+name: PR Checks
+
+on:
+  pull_request:
+    branches:
+      - main
+    types: [opened, synchronize, reopened]
+
+jobs:
+  validate-checklist:
+    name: Validate PR Checklist
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate checklist
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            const body = pr.body || '';
+
+            // Extract checklist items from the PR description
+            const checklistRegex = /## ✅ Checklist\s*\n([\s\S]*?)(?=\n## |$)/;
+            const checklistMatch = body.match(checklistRegex);
+
+            if (!checklistMatch) {
+              core.setFailed('❌ PR description does not contain a checklist section');
+              return;
+            }
+
+            const checklistSection = checklistMatch[1];
+            const checklistItems = checklistSection.match(/- \[ \]/g) || [];
+            const checkedItems = checklistSection.match(/- \[x\]/gi) || [];
+
+            if (checklistItems.length > 0) {
+              core.setFailed(
+                `❌ Please complete all checklist items before submitting. ` +
+                `Found ${checklistItems.length} unchecked item(s).`
+              );
+              return;
+            }
+
+            console.log('✅ All checklist items are completed!');
+
+  lint-and-format:
+    name: Lint & Format Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run ESLint
+        run: pnpm lint
+
+      - name: Check code formatting
+        run: pnpm format:check
+
+  build:
+    name: Build Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build project
+        run: pnpm build
