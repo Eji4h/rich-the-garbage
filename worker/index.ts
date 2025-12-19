@@ -47,7 +47,7 @@ async function handleScoreApi(request: Request, env: Env): Promise<Response> {
       let globalScore = 0;
       if (globalStr) {
         const parsed = Number.parseInt(globalStr, 10);
-        globalScore = isNaN(parsed) ? 0 : parsed;
+        globalScore = Number.isNaN(parsed) ? 0 : parsed;
       }
 
       // Get client score if clientId provided
@@ -58,7 +58,7 @@ async function handleScoreApi(request: Request, env: Env): Promise<Response> {
         );
         if (clientStr) {
           const parsed = Number.parseInt(clientStr, 10);
-          clientScore = isNaN(parsed) ? 0 : parsed;
+          clientScore = Number.isNaN(parsed) ? 0 : parsed;
         }
       }
 
@@ -82,35 +82,35 @@ async function handleScoreApi(request: Request, env: Env): Promise<Response> {
     }
 
     try {
-      const body = (await request.json()) as { amount?: number };
-      const amount = body.amount || 1;
+      const body = (await request.json()) as { score?: number };
+      const score = body.score || 1;
 
-      // Validate amount
-      if (typeof amount !== 'number' || isNaN(amount) || amount < 0) {
-        return jsonResponse({ error: 'Invalid amount' }, 400);
+      // Validate score
+      if (typeof score !== 'number' || Number.isNaN(score) || score < 0) {
+        return jsonResponse({ error: 'Invalid score' }, 400);
       }
 
       // Update global score
       const globalStr = await env.SCORE_KV.get(GLOBAL_SCORE_KEY);
       const currentGlobal = globalStr ? Number(globalStr) : 0;
-      const newGlobalScore = isNaN(currentGlobal)
-        ? amount
-        : currentGlobal + amount;
+      const newGlobalScore = Number.isNaN(currentGlobal)
+        ? score
+        : currentGlobal + score;
       await env.SCORE_KV.put(GLOBAL_SCORE_KEY, String(newGlobalScore));
 
       // Update client score
       const clientKey = `${CLIENT_SCORE_PREFIX}${clientId}`;
       const clientStr = await env.SCORE_KV.get(clientKey);
       const currentClient = clientStr ? Number(clientStr) : 0;
-      const newClientScore = isNaN(currentClient)
-        ? amount
-        : currentClient + amount;
+      const newClientScore = Number.isNaN(currentClient)
+        ? score
+        : currentClient + score;
       await env.SCORE_KV.put(clientKey, String(newClientScore));
 
       return jsonResponse({
         globalScore: newGlobalScore,
         clientScore: newClientScore,
-        added: amount,
+        score,
       });
     } catch (error) {
       console.error('Error updating scores:', error);
