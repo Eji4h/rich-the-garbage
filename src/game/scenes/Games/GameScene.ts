@@ -28,10 +28,10 @@ export class GameScene extends Scene {
     this.character = new Character(this);
     this.gui = new GameSceneGui(this);
     this.scoreSync = new ScoreSync(
+      this,
       this.scorePort,
       this.clientScore,
       this.globalScore,
-      this.time,
     );
   }
 
