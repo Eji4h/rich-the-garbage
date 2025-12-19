@@ -2,7 +2,7 @@ import FloatingGarbage from './components/FloatingGarbage';
 import HeroCarousel from './components/HeroCarousel';
 import GameSection from './components/GameSection';
 import GalleryHeader from './components/GalleryHeader';
-import Gallery from './components/Gallery';
+import GalleryTabs from './components/GalleryTabs';
 import Hacktoberfest from './components/Hacktoberfest';
 import Footer from './components/Footer';
 
@@ -20,7 +20,7 @@ function App() {
 
         <div className="relative z-10 pb-20 bg-gradient-to-b from-transparent to-white/30 backdrop-blur-[2px]">
           <GalleryHeader />
-          <Gallery />
+          <GalleryTabs />
         </div>
 
         {/* Hacktoberfest / Contribute Section */}

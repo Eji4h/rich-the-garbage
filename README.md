@@ -1,242 +1,280 @@
-# Phaser React TypeScript Template
+# Rich The Garbage 🗑️✨
 
-This is a Phaser 3 project template that uses the React framework and Vite for bundling. It includes a bridge for React to Phaser game communication, hot-reloading for quick development workflow and scripts to generate production-ready builds.
+🌐 **[Live Website](https://rich-the-garbage.com/)** | 📦 **[GitHub Repository](https://github.com/Eji4h/rich-the-garbage)**
 
-**[This Template is also available as a JavaScript version.](https://github.com/phaserjs/template-react)**
+A beautiful, interactive photo and video gallery built with Phaser.js, React, and TypeScript. Features a fun game component, like functionality, and a stunning UI with smooth animations.
 
-### Versions
+![Rich The Garbage](public/rich-profile.png)
 
-This template has been updated for:
+## 🌟 Features
 
-- [Phaser 3.90.0](https://github.com/phaserjs/phaser)
-- [React 19.0.0](https://github.com/facebook/react)
-- [Vite 6.3.1](https://github.com/vitejs/vite)
-- [TypeScript 5.7.2](https://github.com/microsoft/TypeScript)
+- 📸 **Photo Gallery**: Browse through a collection of beautiful images
+- 🎥 **Video Carousel**: Watch videos in an elegant carousel interface
+- 🎮 **Interactive Game**: Play a Phaser.js game integrated into the gallery
+- ❤️ **Like Functionality**: Like your favorite photos and videos
+- 🎨 **Beautiful UI**: Modern design with Tailwind CSS and Framer Motion animations
+- ⚡ **Fast Performance**: Built with Vite for lightning-fast development and builds
+- ☁️ **Cloudflare Workers**: Backend API powered by Cloudflare Workers
 
-![screenshot](screenshot.png)
+## 🛠️ Tech Stack
 
-## Requirements
+- **Frontend Framework**: React 19.0.0
+- **Game Engine**: Phaser 3.90.0
+- **Language**: TypeScript 5.7.2
+- **Build Tool**: Vite 6.3.1
+- **Styling**: Tailwind CSS 4.1.18
+- **Animations**: Framer Motion
+- **Backend**: Cloudflare Workers
+- **Package Manager**: pnpm
 
-[Node.js](https://nodejs.org) is required to install dependencies and run scripts via `npm`.
+## 📋 Requirements
 
-## Available Commands
+- [Node.js](https://nodejs.org) (v18 or higher recommended)
+- [pnpm](https://pnpm.io) package manager
 
-| Command               | Description                                                                                              |
-| --------------------- | -------------------------------------------------------------------------------------------------------- |
-| `npm install`         | Install project dependencies                                                                             |
-| `npm run dev`         | Launch a development web server                                                                          |
-| `npm run build`       | Create a production build in the `dist` folder                                                           |
-| `npm run dev-nolog`   | Launch a development web server without sending anonymous data (see "About log.js" below)                |
-| `npm run build-nolog` | Create a production build in the `dist` folder without sending anonymous data (see "About log.js" below) |
+## 🚀 Getting Started
 
-## Writing Code
+### Installation
 
-After cloning the repo, run `npm install` from your project directory. Then, you can start the local development server by running `npm run dev`.
-
-The local development server runs on `http://localhost:8080` by default. Please see the Vite documentation if you wish to change this, or add SSL support.
-
-Once the server is running you can edit any of the files in the `src` folder. Vite will automatically recompile your code and then reload the browser.
-
-## Template Project Structure
-
-We have provided a default project structure to get you started. This is as follows:
-
-| Path                   | Description                                                                                         |
-| ---------------------- | --------------------------------------------------------------------------------------------------- |
-| `index.html`           | A basic HTML page to contain the game.                                                              |
-| `src`                  | Contains the React client source code.                                                              |
-| `src/main.tsx`         | The main **React** entry point. This bootstraps the React application.                              |
-| `src/PhaserGame.tsx`   | The React component that initializes the Phaser Game and acts as a bridge between React and Phaser. |
-| `src/vite-env.d.ts`    | Global TypeScript declarations, providing type information.                                         |
-| `src/App.tsx`          | The main React component.                                                                           |
-| `src/game/EventBus.ts` | A simple event bus to communicate between React and Phaser.                                         |
-| `src/game`             | Contains the game source code.                                                                      |
-| `src/game/main.tsx`    | The main **game** entry point. This contains the game configuration and starts the game.            |
-| `src/game/scenes/`     | The folder where Phaser Scenes are located.                                                         |
-| `public/style.css`     | Some simple CSS rules to help with page layout.                                                     |
-| `public/assets`        | Contains the static assets used by the game.                                                        |
-
-## React Bridge
-
-The `PhaserGame.tsx` component is the bridge between React and Phaser. It initializes the Phaser game and passes events between the two.
-
-To communicate between React and Phaser, you can use the **EventBus.js** file. This is a simple event bus that allows you to emit and listen for events from both React and Phaser.
-
-```js
-// In React
-import { EventBus } from './EventBus';
-
-// Emit an event
-EventBus.emit('event-name', data);
-
-// In Phaser
-// Listen for an event
-EventBus.on('event-name', (data) => {
-  // Do something with the data
-});
-```
-
-In addition to this, the `PhaserGame` component exposes the Phaser game instance along with the most recently active Phaser Scene using React forwardRef.
-
-Once exposed, you can access them like any regular react reference.
-
-## Phaser Scene Handling
-
-In Phaser, the Scene is the lifeblood of your game. It is where you sprites, game logic and all of the Phaser systems live. You can also have multiple scenes running at the same time. This template provides a way to obtain the current active scene from React.
-
-You can get the current Phaser Scene from the component event `"current-active-scene"`. In order to do this, you need to emit the event `"current-scene-ready"` from the Phaser Scene class. This event should be emitted when the scene is ready to be used. You can see this done in all of the Scenes in our template.
-
-**Important**: When you add a new Scene to your game, make sure you expose to React by emitting the `"current-scene-ready"` event via the `EventBus`, like this:
-
-```ts
-class MyScene extends Phaser.Scene {
-  constructor() {
-    super('MyScene');
-  }
-
-  create() {
-    // Your Game Objects and logic here
-
-    // At the end of create method:
-    EventBus.emit('current-scene-ready', this);
-  }
-}
-```
-
-You don't have to emit this event if you don't need to access the specific scene from React. Also, you don't have to emit it at the end of `create`, you can emit it at any point. For example, should your Scene be waiting for a network request or API call to complete, it could emit the event once that data is ready.
-
-### React Component Example
-
-Here's an example of how to access Phaser data for use in a React Component:
-
-```ts
-import { useRef } from 'react';
-import { IRefPhaserGame } from "./game/PhaserGame";
-
-// In a parent component
-const ReactComponent = () => {
-
-    const phaserRef = useRef<IRefPhaserGame>(); // you can access to this ref from phaserRef.current
-
-    const onCurrentActiveScene = (scene: Phaser.Scene) => {
-
-        // This is invoked
-
-    }
-
-    return (
-        ...
-        <PhaserGame ref={phaserRef} currentActiveScene={onCurrentActiveScene} />
-        ...
-    );
-
-}
-```
-
-In the code above, you can get a reference to the current Phaser Game instance and the current Scene by creating a reference with `useRef()` and assign to PhaserGame component.
-
-From this state reference, the game instance is available via `phaserRef.current.game` and the most recently active Scene via `phaserRef.current.scene`.
-
-The `onCurrentActiveScene` callback will also be invoked whenever the the Phaser Scene changes, as long as you emit the event via the EventBus, as outlined above.
-
-## Handling Assets
-
-Vite supports loading assets via JavaScript module `import` statements.
-
-This template provides support for both embedding assets and also loading them from a static folder. To embed an asset, you can import it at the top of the JavaScript file you are using it in:
-
-```js
-import logoImg from './assets/logo.png';
-```
-
-To load static files such as audio files, videos, etc place them into the `public/assets` folder. Then you can use this path in the Loader calls within Phaser:
-
-```js
-preload();
-{
-  //  This is an example of an imported bundled image.
-  //  Remember to import it at the top of this file
-  this.load.image('logo', logoImg);
-
-  //  This is an example of loading a static image
-  //  from the public/assets folder:
-  this.load.image('background', 'assets/bg.png');
-}
-```
-
-When you issue the `npm run build` command, all static assets are automatically copied to the `dist/assets` folder.
-
-## Deploying to Production
-
-After you run the `npm run build` command, your code will be built into a single bundle and saved to the `dist` folder, along with any other assets your project imported, or stored in the public assets folder.
-
-In order to deploy your game, you will need to upload _all_ of the contents of the `dist` folder to a public facing web server.
-
-## Customizing the Template
-
-### Vite
-
-If you want to customize your build, such as adding plugin (i.e. for loading CSS or fonts), you can modify the `vite/config.*.mjs` file for cross-project changes, or you can modify and/or create new configuration files and target them in specific npm tasks inside of `package.json`. Please see the [Vite documentation](https://vitejs.dev/) for more information.
-
-## About log.js
-
-If you inspect our node scripts you will see there is a file called `log.js`. This file makes a single silent API call to a domain called `gryzor.co`. This domain is owned by Phaser Studio Inc. The domain name is a homage to one of our favorite retro games.
-
-We send the following 3 pieces of data to this API: The name of the template being used (vue, react, etc). If the build was 'dev' or 'prod' and finally the version of Phaser being used.
-
-At no point is any personal data collected or sent. We don't know about your project files, device, browser or anything else. Feel free to inspect the `log.js` file to confirm this.
-
-Why do we do this? Because being open source means we have no visible metrics about which of our templates are being used. We work hard to maintain a large and diverse set of templates for Phaser developers and this is our small anonymous way to determine if that work is actually paying off, or not. In short, it helps us ensure we're building the tools for you.
-
-However, if you don't want to send any data, you can use these commands instead:
-
-Dev:
+1. Clone the repository:
 
 ```bash
-npm run dev-nolog
+git clone https://github.com/Eji4h/rich-the-garbage.git
+cd rich-the-garbage
 ```
 
-Build:
+2. Install dependencies:
 
 ```bash
-npm run build-nolog
+pnpm install
 ```
 
-Or, to disable the log entirely, simply delete the file `log.js` and remove the call to it in the `scripts` section of `package.json`:
+3. Start the development server:
 
-Before:
-
-```json
-"scripts": {
-    "dev": "node log.js dev & dev-template-script",
-    "build": "node log.js build & build-template-script"
-},
+```bash
+pnpm dev
 ```
 
-After:
+The application will be available at `http://localhost:8080` (or the port shown in your terminal).
 
-```json
-"scripts": {
-    "dev": "dev-template-script",
-    "build": "build-template-script"
-},
+### Building for Production
+
+```bash
+pnpm build
 ```
 
-Either of these will stop `log.js` from running. If you do decide to do this, please could you at least join our Discord and tell us which template you're using! Or send us a quick email. Either will be super-helpful, thank you.
+This will:
 
-## Join the Phaser Community!
+- Generate asset lists automatically (via `prebuild` hook)
+- Create an optimized production build in the `dist` folder
 
-We love to see what developers like you create with Phaser! It really motivates us to keep improving. So please join our community and show-off your work 😄
+### Preview Production Build
 
-**Visit:** The [Phaser website](https://phaser.io) and follow on [Phaser Twitter](https://twitter.com/phaser_)<br />
-**Play:** Some of the amazing games [#madewithphaser](https://twitter.com/search?q=%23madewithphaser&src=typed_query&f=live)<br />
-**Learn:** [API Docs](https://newdocs.phaser.io), [Support Forum](https://phaser.discourse.group/) and [StackOverflow](https://stackoverflow.com/questions/tagged/phaser-framework)<br />
-**Discord:** Join us on [Discord](https://discord.gg/phaser)<br />
-**Code:** 2000+ [Examples](https://labs.phaser.io)<br />
-**Read:** The [Phaser World](https://phaser.io/community/newsletter) Newsletter<br />
+```bash
+pnpm preview
+```
 
-Created by [Phaser Studio](mailto:support@phaser.io). Powered by coffee, anime, pixels and love.
+## 📁 Project Structure
 
-The Phaser logo and characters are &copy; 2011 - 2025 Phaser Studio Inc.
+```
+rich-the-garbage/
+├── src/
+│   ├── components/          # React components
+│   │   ├── FloatingGarbage.tsx
+│   │   ├── HeroCarousel.tsx
+│   │   ├── GameSection.tsx
+│   │   ├── GalleryHeader.tsx
+│   │   ├── GalleryTabs.tsx
+│   │   ├── Hacktoberfest.tsx
+│   │   └── Footer.tsx
+│   ├── game/                # Phaser game code
+│   │   ├── main.ts          # Game entry point
+│   │   ├── scenes/          # Phaser scenes
+│   │   └── EventBus.ts      # React-Phaser communication
+│   ├── utils/               # Utility functions
+│   │   ├── images.ts        # Auto-generated image list
+│   │   ├── videos.ts        # Auto-generated video list
+│   │   ├── likeApi.ts       # Like API functions
+│   │   └── clientId.ts      # Client ID management
+│   ├── App.tsx              # Main React component
+│   └── main.tsx             # React entry point
+├── public/
+│   ├── gallery/             # Image files
+│   └── videos/              # Video files
+├── worker/                  # Cloudflare Workers API
+├── scripts/
+│   └── generate-assets.ts   # Asset generation script
+└── vite/                    # Vite configuration files
+```
 
-All rights reserved.
+## 🎮 Available Commands
+
+| Command                | Description                     |
+| ---------------------- | ------------------------------- |
+| `pnpm install`         | Install project dependencies    |
+| `pnpm dev`             | Launch development server       |
+| `pnpm build`           | Create production build         |
+| `pnpm preview`         | Preview production build        |
+| `pnpm lint`            | Run ESLint                      |
+| `pnpm lint:fix`        | Fix ESLint errors automatically |
+| `pnpm format`          | Format code with Prettier       |
+| `pnpm format:check`    | Check code formatting           |
+| `pnpm generate:assets` | Generate asset TypeScript files |
+
+## 🎨 Adding Assets
+
+### Images
+
+1. Add your image files to `public/gallery/`
+2. Supported formats: `.jpg`, `.jpeg`, `.png`, `.webp`, `.gif`
+3. Run `pnpm generate:assets` to update the asset list
+
+### Videos
+
+1. Add your video files to `public/videos/`
+2. Supported formats: `.mp4`, `.webm`, `.ogg`
+3. Run `pnpm generate:assets` to update the asset list
+
+**Note**: The asset generation script runs automatically before `pnpm build`, but you can run it manually after adding new assets.
+
+## 🤝 Contributing to Hacktoberfest
+
+We welcome contributions during Hacktoberfest and throughout the year! Here's how you can help:
+
+### 🎯 How to Contribute
+
+1. **Fork the repository**
+
+   ```bash
+   # Click the "Fork" button on GitHub, then:
+   git clone https://github.com/<yourusername>/rich-the-garbage.git
+   cd rich-the-garbage
+   ```
+
+2. **Create a branch**
+
+   ```bash
+   git checkout -b feature/your-feature-name
+   # or
+   git checkout -b fix/your-bug-fix
+   ```
+
+3. **Make your changes**
+   - Follow the code style guidelines (see below)
+   - Write clean, readable code
+   - Add comments for complex logic
+   - Test your changes locally
+
+4. **Commit your changes**
+
+   ```bash
+   git add .
+   git commit -m "feat: add your feature description"
+   # Use conventional commit messages:
+   # feat: for new features
+   # fix: for bug fixes
+   # docs: for documentation
+   # style: for formatting
+   # refactor: for code refactoring
+   # test: for tests
+   ```
+
+5. **Push and create a Pull Request**
+   ```bash
+   git push origin feature/your-feature-name
+   ```
+   Then open a Pull Request on GitHub with a clear description of your changes.
+
+### 🎁 Good First Issues
+
+Look for issues labeled with:
+
+- `good first issue` - Perfect for beginners
+- `hacktoberfest` - Hacktoberfest-specific contributions
+- `help wanted` - Areas where we need help
+
+### 💡 Contribution Ideas
+
+- 🐛 **Bug Fixes**: Fix any issues you find
+- ✨ **New Features**: Add new functionality to the gallery or game
+- 🎨 **UI/UX Improvements**: Enhance the design and user experience
+- 📝 **Documentation**: Improve README, add code comments, write guides
+- 🧪 **Tests**: Add unit tests or integration tests
+- 🌐 **Internationalization**: Add support for multiple languages
+- ♿ **Accessibility**: Improve accessibility features
+- 🎮 **Game Features**: Enhance the Phaser game with new mechanics
+- 🖼️ **Asset Management**: Improve asset loading and organization
+- ⚡ **Performance**: Optimize rendering, loading, or API calls
+
+### 📝 Code Style Guidelines
+
+- **TypeScript**: Use proper type annotations, avoid `any`
+- **Formatting**: Run `pnpm format` before committing
+- **Linting**: Ensure `pnpm lint` passes
+- **React**: Use functional components with hooks
+- **Phaser**: Follow Phaser 3.90.0 API patterns
+- **File Organization**: Follow the existing project structure
+- **Comments**: Add comments for complex logic, especially game mechanics
+
+### ✅ Pull Request Checklist
+
+Before submitting your PR, make sure:
+
+- [ ] Code follows the project's style guidelines
+- [ ] All tests pass (if applicable)
+- [ ] ESLint passes (`pnpm lint`)
+- [ ] Code is formatted (`pnpm format:check`)
+- [ ] Your changes work in development mode
+- [ ] You've tested your changes thoroughly
+- [ ] PR description clearly explains what was changed and why
+- [ ] You've updated documentation if needed
+
+### 🏷️ Hacktoberfest Labels
+
+We use these labels to help contributors:
+
+- `hacktoberfest` - Valid for Hacktoberfest
+- `good first issue` - Great for first-time contributors
+- `help wanted` - We'd love help with this
+- `bug` - Something isn't working
+- `enhancement` - New feature or request
+- `documentation` - Documentation improvements
+
+### 🎉 Recognition
+
+All valid contributions will be:
+
+- Reviewed promptly
+- Merged if they meet our standards
+- Counted toward Hacktoberfest (if submitted during October)
+- Credited in our contributors list
+
+### ❓ Need Help?
+
+- Open an issue for questions or discussions
+- Check existing issues and PRs for similar problems
+- Review the codebase to understand patterns
+- Ask in your PR comments - we're happy to help!
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- Built with [Phaser](https://phaser.io) game framework
+- UI powered by [React](https://react.dev) and [Tailwind CSS](https://tailwindcss.com)
+- Animations by [Framer Motion](https://www.framer.com/motion/)
+- Backend hosted on [Cloudflare Workers](https://workers.cloudflare.com)
+
+## 🌐 Links
+
+- **Live Demo**: https://rich-the-garbage.com/
+- **GitHub Repository**: https://github.com/Eji4h/rich-the-garbage
+- **Issues**: https://github.com/Eji4h/rich-the-garbage/issues
+
+---
+
+**Happy Coding! 🎉 Let's make Rich The Garbage even better together!**
+
+Made with ❤️ by the open source community
