@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-import { galleryVideos } from '../utils/videos';
+import { galleryVideos } from '../../utils/videos';
 
 const videos = galleryVideos;
 

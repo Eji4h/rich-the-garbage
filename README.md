@@ -79,28 +79,42 @@ pnpm preview
 ```
 rich-the-garbage/
 ├── src/
-│   ├── components/          # React components
-│   │   ├── FloatingGarbage.tsx
-│   │   ├── HeroCarousel.tsx
-│   │   ├── GameSection.tsx
-│   │   ├── GalleryHeader.tsx
-│   │   ├── GalleryTabs.tsx
-│   │   ├── Hacktoberfest.tsx
-│   │   └── Footer.tsx
-│   ├── game/                # Phaser game code
-│   │   ├── main.ts          # Game entry point
-│   │   ├── scenes/          # Phaser scenes
-│   │   └── EventBus.ts      # React-Phaser communication
+│   ├── applications/        # Application layer (hexagonal architecture)
+│   │   ├── components/      # React components
+│   │   │   ├── FloatingGarbage.tsx
+│   │   │   ├── HeroCarousel.tsx
+│   │   │   ├── GameSection.tsx
+│   │   │   ├── GalleryHeader.tsx
+│   │   │   ├── GalleryTabs.tsx
+│   │   │   ├── Gallery.tsx
+│   │   │   ├── Videos.tsx
+│   │   │   ├── LikeButton.tsx
+│   │   │   ├── Hacktoberfest.tsx
+│   │   │   └── Footer.tsx
+│   │   ├── game/            # Phaser game code
+│   │   │   ├── main.ts       # Game entry point
+│   │   │   ├── EventBus.ts   # React-Phaser communication
+│   │   │   ├── AssetPath.ts  # Asset path utilities
+│   │   │   └── scenes/       # Phaser scenes
+│   │   │       └── Games/    # Game scene implementation
+│   │   └── ports/            # Port interfaces (hexagonal architecture)
+│   │       └── Score.port.ts
+│   ├── adapters/            # Adapters layer (hexagonal architecture)
+│   │   └── outbounds/       # Outbound adapters
+│   │       └── repositories/ # Repository implementations
+│   │           └── Score.imp.ts
 │   ├── utils/               # Utility functions
 │   │   ├── images.ts        # Auto-generated image list
 │   │   ├── videos.ts        # Auto-generated video list
 │   │   ├── likeApi.ts       # Like API functions
-│   │   └── clientId.ts      # Client ID management
+│   │   └── clientId.ts       # Client ID management
 │   ├── App.tsx              # Main React component
+│   ├── PhaserGame.tsx       # Phaser game wrapper component
 │   └── main.tsx             # React entry point
 ├── public/
 │   ├── gallery/             # Image files
-│   └── videos/              # Video files
+│   ├── videos/              # Video files
+│   └── phaser/              # Phaser game assets
 ├── worker/                  # Cloudflare Workers API
 ├── scripts/
 │   └── generate-assets.ts   # Asset generation script

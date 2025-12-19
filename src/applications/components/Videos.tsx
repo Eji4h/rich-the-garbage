@@ -3,16 +3,16 @@ import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import { galleryImages } from '../utils/images';
+import { galleryVideos } from '../../utils/videos';
 import LikeButton from './LikeButton';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-const images = galleryImages;
+const videos = galleryVideos;
 
-function GalleryItem({
+function VideoItem({
   src,
   index,
   onClick,
@@ -22,10 +22,10 @@ function GalleryItem({
   onClick: () => void;
 }) {
   const [isLoading, setIsLoading] = useState(true);
-  const imgRef = useRef<HTMLImageElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
-    if (imgRef.current?.complete) {
+    if (videoRef.current?.readyState === 4) {
       setIsLoading(false);
     }
   }, []);
@@ -40,7 +40,7 @@ function GalleryItem({
       onClick={onClick}
     >
       {isLoading && (
-        <div className="absolute inset-0 flex items-center justify-center bg-white/20 backdrop-blur-sm">
+        <div className="absolute inset-0 flex items-center justify-center bg-white/20 backdrop-blur-sm z-10">
           <motion.div
             animate={{
               y: [0, -10, 0],
@@ -64,7 +64,12 @@ function GalleryItem({
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"
+                d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M15.91 11.672l.266.162a.5.5 0 010 .848l-8.854 5.38a.5.5 0 01-.757-.43V5.56a.5.5 0 01.757-.43l8.854 5.38z"
               />
             </svg>
           </motion.div>
@@ -73,28 +78,49 @@ function GalleryItem({
 
       <div className="absolute inset-0 z-10 bg-gradient-to-t from-purple-900/40 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
 
-      <img
-        ref={imgRef}
+      <video
+        ref={videoRef}
         src={src}
-        alt={`Gallery image ${index + 1}`}
         className={cn(
           'h-full w-full object-cover transition-all duration-700 will-change-transform group-hover:scale-110',
           isLoading ? 'opacity-0' : 'opacity-100',
         )}
-        loading="lazy"
-        onLoad={() => setIsLoading(false)}
+        muted
+        loop
+        playsInline
+        onLoadedData={() => setIsLoading(false)}
         onError={() => setIsLoading(false)}
       />
 
-      <div className="absolute bottom-0 left-0 right-0 z-20 p-6 translate-y-4 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
+      {/* Play button overlay */}
+      <div className="absolute inset-0 z-20 flex items-center justify-center opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+        <div className="rounded-full bg-white/90 backdrop-blur-sm p-4 shadow-lg">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth={2}
+            stroke="currentColor"
+            className="w-8 h-8 text-purple-600"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.986V5.653z"
+            />
+          </svg>
+        </div>
+      </div>
+
+      <div className="absolute bottom-0 left-0 right-0 z-30 p-6 translate-y-4 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
         <div className="flex items-end justify-between">
           <div>
             <p className="text-sm font-medium text-white drop-shadow-md">
-              Collection Item
+              Video Collection
             </p>
             <p className="text-xs text-white/80 drop-shadow-md">#{index + 1}</p>
           </div>
-          <div onClick={(e) => e.stopPropagation()} className="relative z-30">
+          <div onClick={(e) => e.stopPropagation()} className="relative z-40">
             <LikeButton imageId={src} />
           </div>
         </div>
@@ -103,18 +129,19 @@ function GalleryItem({
   );
 }
 
-export default function Gallery() {
+export default function Videos() {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   const handleNext = useCallback(() => {
     setSelectedIndex((prev) =>
-      prev === null ? null : (prev + 1) % images.length,
+      prev === null ? null : (prev + 1) % videos.length,
     );
   }, []);
 
   const handlePrev = useCallback(() => {
     setSelectedIndex((prev) =>
-      prev === null ? null : (prev - 1 + images.length) % images.length,
+      prev === null ? null : (prev - 1 + videos.length) % videos.length,
     );
   }, []);
 
@@ -141,11 +168,20 @@ export default function Gallery() {
     };
   }, [selectedIndex]);
 
+  // Play video when modal opens
+  useEffect(() => {
+    if (selectedIndex !== null && videoRef.current) {
+      videoRef.current.play().catch(() => {
+        // Autoplay failed, user interaction required
+      });
+    }
+  }, [selectedIndex]);
+
   return (
     <div className="p-4 md:p-8">
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mx-auto max-w-7xl">
-        {images.map((src, index) => (
-          <GalleryItem
+        {videos.map((src, index) => (
+          <VideoItem
             key={src}
             src={src}
             index={index}
@@ -241,17 +277,19 @@ export default function Gallery() {
                   className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 max-h-[90vh] max-w-[90vw] overflow-hidden rounded-2xl shadow-2xl ring-1 ring-white/50"
                   onClick={(e) => e.stopPropagation()}
                 >
-                  <img
-                    src={images[selectedIndex]}
-                    alt="Selected gallery image"
+                  <video
+                    ref={videoRef}
+                    src={videos[selectedIndex]}
+                    controls
+                    autoPlay
                     className="max-h-[85vh] w-auto object-contain"
                   />
                   <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-white/90 to-transparent p-6">
                     <div className="flex items-center justify-between">
                       <p className="text-slate-900 font-medium">
-                        Image {selectedIndex + 1} of {images.length}
+                        Video {selectedIndex + 1} of {videos.length}
                       </p>
-                      <LikeButton imageId={images[selectedIndex]} />
+                      <LikeButton imageId={videos[selectedIndex]} />
                     </div>
                   </div>
                 </motion.div>

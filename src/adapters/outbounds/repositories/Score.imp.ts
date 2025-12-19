@@ -1,5 +1,5 @@
-import { getClientId } from '../../../../utils/clientId';
-import { Score, ScoreResponse } from '../ports/Score.port';
+import { getClientId } from '../../../utils/clientId';
+import { Score, ScoreResponse } from '../../../applications/ports/Score.port';
 
 export class ScoreApi implements Score {
   async getScore(): Promise<ScoreResponse> {

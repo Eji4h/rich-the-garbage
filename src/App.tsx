@@ -1,10 +1,10 @@
-import FloatingGarbage from './components/FloatingGarbage';
-import HeroCarousel from './components/HeroCarousel';
-import GameSection from './components/GameSection';
-import GalleryHeader from './components/GalleryHeader';
-import GalleryTabs from './components/GalleryTabs';
-import Hacktoberfest from './components/Hacktoberfest';
-import Footer from './components/Footer';
+import FloatingGarbage from './applications/components/FloatingGarbage';
+import HeroCarousel from './applications/components/HeroCarousel';
+import GameSection from './applications/components/GameSection';
+import GalleryHeader from './applications/components/GalleryHeader';
+import GalleryTabs from './applications/components/GalleryTabs';
+import Hacktoberfest from './applications/components/Hacktoberfest';
+import Footer from './applications/components/Footer';
 
 function App() {
   return (

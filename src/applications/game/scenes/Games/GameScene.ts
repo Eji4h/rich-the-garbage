@@ -5,15 +5,15 @@ import { match } from 'ts-pattern';
 import { GameSceneGui } from './gui/GameSceneGui';
 import { DrinkOutCome, DrinkOutComesScoreDict } from './DrinkOutComes';
 import { RandomDrinkOutCome } from './ports/RandomDrinkOutCome.port';
-import { ObservableScore } from './ObservableScore';
-import { Score } from './ports/Score.port';
+import { Score } from '../../../ports/Score.port';
 import { ScoreSync } from './ScoreSync';
+import { scoreSingleton } from './ScoreSingleton';
 
 export class GameScene extends Scene {
   public static readonly SceneName = 'Game';
 
-  public readonly clientScore = new ObservableScore(0);
-  public readonly globalScore = new ObservableScore(0);
+  public readonly clientScore = scoreSingleton.clientScore;
+  public readonly globalScore = scoreSingleton.globalScore;
 
   private particles: Phaser.GameObjects.Particles.ParticleEmitter;
   private readonly character: Character;

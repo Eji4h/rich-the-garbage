@@ -1,28 +1,47 @@
 import { useRef, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { IRefPhaserGame, PhaserGame } from '../PhaserGame';
-import { getClientId } from '../utils/clientId';
+import { IRefPhaserGame, PhaserGame } from '../../PhaserGame';
+import { scoreSingleton } from '../game/scenes/Games/ScoreSingleton';
+import { ScoreApi } from '../../adapters/outbounds/repositories/Score.imp';
 
 export default function GameSection() {
   const phaserRef = useRef<IRefPhaserGame | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [globalScore, setGlobalScore] = useState<number | null>(null);
   const [clientScore, setClientScore] = useState<number | null>(null);
+  const scoreApi = useRef(new ScoreApi());
 
   useEffect(() => {
     fetchScores();
+
+    // Subscribe to score updates from singleton
+    const unsubscribeClient = scoreSingleton.clientScore.subscribe((score) => {
+      setClientScore(score);
+    });
+
+    const unsubscribeGlobal = scoreSingleton.globalScore.subscribe((score) => {
+      setGlobalScore(score);
+    });
+
+    return () => {
+      unsubscribeClient();
+      unsubscribeGlobal();
+    };
   }, []);
 
   const fetchScores = async () => {
     try {
-      const response = await fetch('/api/score', {
-        headers: {
-          'X-Client-ID': getClientId(),
-        },
-      });
-      const data = await response.json();
-      setGlobalScore(data.globalScore || 0);
-      setClientScore(data.clientScore || 0);
+      const data = await scoreApi.current.getScore();
+      const global = data.globalScore || 0;
+      const client = data.clientScore || 0;
+
+      // Update singleton scores (will notify all subscribers)
+      scoreSingleton.globalScore.value = global;
+      scoreSingleton.clientScore.value = client;
+
+      // Also update local state (redundant but safe)
+      setGlobalScore(global);
+      setClientScore(client);
     } catch (error) {
       console.error('Failed to fetch scores:', error);
     }
@@ -50,11 +69,11 @@ export default function GameSection() {
                   🌍 Global Score
                 </p>
                 <motion.p
-                  className="text-4xl font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent"
+                  className="text-4xl font-bold bg-linear-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent"
                   animate={{ scale: [1, 1.02, 1] }}
                   transition={{ duration: 2, repeat: Infinity }}
                 >
-                  {globalScore !== null ? globalScore.toLocaleString() : '...'}
+                  {globalScore === null ? '...' : globalScore.toLocaleString()}
                 </motion.p>
               </div>
 
@@ -64,11 +83,11 @@ export default function GameSection() {
                   ⭐ Your Score
                 </p>
                 <motion.p
-                  className="text-4xl font-bold bg-gradient-to-r from-amber-400 to-orange-500 bg-clip-text text-transparent"
+                  className="text-4xl font-bold bg-linear-to-r from-amber-400 to-orange-500 bg-clip-text text-transparent"
                   animate={{ scale: [1, 1.02, 1] }}
                   transition={{ duration: 2, repeat: Infinity, delay: 0.5 }}
                 >
-                  {clientScore !== null ? clientScore.toLocaleString() : '...'}
+                  {clientScore === null ? '...' : clientScore.toLocaleString()}
                 </motion.p>
               </div>
             </div>
@@ -81,13 +100,13 @@ export default function GameSection() {
               whileTap={{ scale: 0.95 }}
             >
               {/* Outer glow ring */}
-              <div className="absolute inset-0 rounded-full bg-gradient-to-br from-rose-500 via-pink-500 to-purple-600 animate-pulse opacity-50 blur-md" />
+              <div className="absolute inset-0 rounded-full bg-linear-to-br from-rose-500 via-pink-500 to-purple-600 animate-pulse opacity-50 blur-md" />
 
               {/* Main button background */}
-              <div className="absolute inset-0 rounded-full bg-gradient-to-br from-rose-500 via-pink-500 to-purple-600 shadow-lg" />
+              <div className="absolute inset-0 rounded-full bg-linear-to-br from-rose-500 via-pink-500 to-purple-600 shadow-lg" />
 
               {/* Inner circle */}
-              <div className="absolute inset-3 rounded-full bg-gradient-to-br from-rose-400 via-pink-400 to-purple-500 shadow-inner" />
+              <div className="absolute inset-3 rounded-full bg-linear-to-br from-rose-400 via-pink-400 to-purple-500 shadow-inner" />
 
               {/* Beer icon */}
               <span className="relative text-6xl drop-shadow-lg group-hover:scale-110 transition-transform">

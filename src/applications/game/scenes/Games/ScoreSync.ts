@@ -1,6 +1,6 @@
 import { Scene } from 'phaser';
 import { ObservableScore } from './ObservableScore';
-import { Score } from './ports/Score.port';
+import { Score } from '../../../ports/Score.port';
 
 export class ScoreSync {
   private pendingScore: number = 0;
