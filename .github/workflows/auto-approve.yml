@@ -54,4 +54,4 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.AUTO_APPROVE_TOKEN }}
         run: |
-          gh pr review ${{ steps.pr.outputs.number }} --approve --body "✅ Auto-approved: All CI checks passed!"
+          gh pr review ${{ steps.pr.outputs.number }} --repo ${{ github.repository }} --approve --body "✅ Auto-approved: All CI checks passed!"
