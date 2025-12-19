@@ -1,6 +1,6 @@
-import { DrinkOutcome } from './DrinkOutComes';
+import { DrinkOutcome } from '../DrinkOutComes';
 import { FloatingTextGui } from './FloatingTextGui';
-import { GameScene } from './GameScene';
+import { GameScene } from '../GameScene';
 
 export class GameSceneGui {
   private clientScoreText: Phaser.GameObjects.Text;

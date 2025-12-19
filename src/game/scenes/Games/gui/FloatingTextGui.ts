@@ -1,5 +1,5 @@
 import { match } from 'ts-pattern';
-import { DrinkOutcome } from './DrinkOutComes';
+import { DrinkOutcome } from '../DrinkOutComes';
 
 export class FloatingTextGui {
   private text: Phaser.GameObjects.Text;
