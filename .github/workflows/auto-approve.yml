@@ -5,14 +5,14 @@ on:
     workflows: ["PR Checks"]
     types:
       - completed
-  pull_request:
-    types: [opened, synchronize, reopened]
 
 jobs:
   auto-approve:
     runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      contents: read
     if: |
-      github.event_name == 'workflow_run' &&
       github.event.workflow_run.conclusion == 'success' &&
       github.event.workflow_run.event == 'pull_request'
     steps:
@@ -29,12 +29,26 @@ jobs:
             core.setOutput('number', prNumber);
             return prNumber;
 
-      - name: Check if already approved
+      - name: Get PR author and check if already approved
         id: check
         uses: actions/github-script@v7
         with:
+          github-token: ${{ secrets.AUTO_APPROVE_TOKEN }}
           script: |
             const prNumber = ${{ steps.pr.outputs.number }};
+            const { data: pr } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: prNumber
+            });
+
+            const prAuthor = pr.user.login;
+            const repoOwner = context.repo.owner;
+
+            // Check if PR author is the repository owner
+            const isOwnPR = prAuthor === repoOwner;
+
+            // Get existing reviews
             const { data: reviews } = await github.rest.pulls.listReviews({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -45,21 +59,25 @@ jobs:
               review => review.state === 'APPROVED' && review.user.type === 'User'
             );
 
-            core.setOutput('approved', hasApproval);
-            return hasApproval;
+            // Set outputs as strings for GitHub Actions
+            core.setOutput('approved', String(hasApproval));
+            core.setOutput('isOwnPR', String(isOwnPR));
+
+            if (isOwnPR) {
+              console.log(`⚠️ Skipping auto-approval: PR author (${prAuthor}) is the repository owner. GitHub doesn't allow self-approval.`);
+            } else if (hasApproval) {
+              console.log(`ℹ️ PR #${prNumber} is already approved.`);
+            } else {
+              console.log(`✅ PR #${prNumber} from ${prAuthor} will be auto-approved.`);
+            }
+
+            return { hasApproval, isOwnPR };
 
       - name: Auto approve PR
-        if: steps.check.outputs.approved == 'false'
-        uses: actions/github-script@v7
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            const prNumber = ${{ steps.pr.outputs.number }};
-            await github.rest.pulls.createReview({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              pull_number: prNumber,
-              event: 'APPROVE',
-              body: '✅ Auto-approved: All CI checks passed!'
-            });
-            console.log(`Approved PR #${prNumber}`);
+        if: |
+          steps.check.outputs.approved != 'true' &&
+          steps.check.outputs.isOwnPR != 'true'
+        env:
+          GH_TOKEN: ${{ secrets.AUTO_APPROVE_TOKEN }}
+        run: |
+          gh pr review ${{ steps.pr.outputs.number }} --repo ${{ github.repository }} --approve --body "✅ Auto-approved: All CI checks passed!"

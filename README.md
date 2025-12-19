@@ -81,28 +81,11 @@ rich-the-garbage/
 ├── src/
 │   ├── applications/        # Application layer (hexagonal architecture)
 │   │   ├── components/      # React components
-│   │   │   ├── FloatingGarbage.tsx
-│   │   │   ├── HeroCarousel.tsx
-│   │   │   ├── GameSection.tsx
-│   │   │   ├── GalleryHeader.tsx
-│   │   │   ├── GalleryTabs.tsx
-│   │   │   ├── Gallery.tsx
-│   │   │   ├── Videos.tsx
-│   │   │   ├── LikeButton.tsx
-│   │   │   ├── Hacktoberfest.tsx
-│   │   │   └── Footer.tsx
 │   │   ├── game/            # Phaser game code
-│   │   │   ├── main.ts       # Game entry point
-│   │   │   ├── EventBus.ts   # React-Phaser communication
-│   │   │   ├── AssetPath.ts  # Asset path utilities
-│   │   │   └── scenes/       # Phaser scenes
-│   │   │       └── Games/    # Game scene implementation
 │   │   └── ports/            # Port interfaces (hexagonal architecture)
-│   │       └── Score.port.ts
 │   ├── adapters/            # Adapters layer (hexagonal architecture)
 │   │   └── outbounds/       # Outbound adapters
 │   │       └── repositories/ # Repository implementations
-│   │           └── Score.imp.ts
 │   ├── utils/               # Utility functions
 │   │   ├── images.ts        # Auto-generated image list
 │   │   ├── videos.ts        # Auto-generated video list
