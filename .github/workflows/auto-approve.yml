@@ -51,16 +51,7 @@ jobs:
 
       - name: Auto approve PR
         if: steps.check.outputs.approved == 'false'
-        uses: actions/github-script@v7
-        with:
-          github-token: ${{ secrets.AUTO_APPROVE_TOKEN }}
-          script: |
-            const prNumber = ${{ steps.pr.outputs.number }};
-            await github.rest.pulls.createReview({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              pull_number: prNumber,
-              event: 'APPROVE',
-              body: '✅ Auto-approved: All CI checks passed!'
-            });
-            console.log(`Approved PR #${prNumber}`);
+        env:
+          GH_TOKEN: ${{ secrets.AUTO_APPROVE_TOKEN }}
+        run: |
+          gh pr review ${{ steps.pr.outputs.number }} --approve --body "✅ Auto-approved: All CI checks passed!"
