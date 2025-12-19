@@ -5,8 +5,8 @@ import {
   useRef,
   ForwardedRef,
 } from 'react';
-import StartGame from './game/main';
-import { EventBus } from './game/EventBus';
+import StartGame from './applications/game/main';
+import { EventBus } from './applications/game/EventBus';
 
 export interface IRefPhaserGame {
   game: Phaser.Game | null;

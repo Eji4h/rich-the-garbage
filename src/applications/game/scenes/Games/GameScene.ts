@@ -5,7 +5,7 @@ import { match } from 'ts-pattern';
 import { GameSceneGui } from './gui/GameSceneGui';
 import { DrinkOutCome, DrinkOutComesScoreDict } from './DrinkOutComes';
 import { RandomDrinkOutCome } from './ports/RandomDrinkOutCome.port';
-import { Score } from './ports/Score.port';
+import { Score } from '../../../ports/Score.port';
 import { ScoreSync } from './ScoreSync';
 import { scoreSingleton } from './ScoreSingleton';
 

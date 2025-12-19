@@ -1,14 +1,15 @@
 import { useRef, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { IRefPhaserGame, PhaserGame } from '../PhaserGame';
-import { getClientId } from '../utils/clientId';
+import { IRefPhaserGame, PhaserGame } from '../../PhaserGame';
 import { scoreSingleton } from '../game/scenes/Games/ScoreSingleton';
+import { ScoreApi } from '../../adapters/outbounds/repositories/Score.imp';
 
 export default function GameSection() {
   const phaserRef = useRef<IRefPhaserGame | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [globalScore, setGlobalScore] = useState<number | null>(null);
   const [clientScore, setClientScore] = useState<number | null>(null);
+  const scoreApi = useRef(new ScoreApi());
 
   useEffect(() => {
     fetchScores();
@@ -30,12 +31,7 @@ export default function GameSection() {
 
   const fetchScores = async () => {
     try {
-      const response = await fetch('/api/score', {
-        headers: {
-          'X-Client-ID': getClientId(),
-        },
-      });
-      const data = await response.json();
+      const data = await scoreApi.current.getScore();
       const global = data.globalScore || 0;
       const client = data.clientScore || 0;
 
