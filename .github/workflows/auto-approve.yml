@@ -29,13 +29,26 @@ jobs:
             core.setOutput('number', prNumber);
             return prNumber;
 
-      - name: Check if already approved
+      - name: Get PR author and check if already approved
         id: check
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.AUTO_APPROVE_TOKEN }}
           script: |
             const prNumber = ${{ steps.pr.outputs.number }};
+            const { data: pr } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: prNumber
+            });
+
+            const prAuthor = pr.user.login;
+            const repoOwner = context.repo.owner;
+
+            // Check if PR author is the repository owner
+            const isOwnPR = prAuthor === repoOwner;
+
+            // Get existing reviews
             const { data: reviews } = await github.rest.pulls.listReviews({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -47,10 +60,18 @@ jobs:
             );
 
             core.setOutput('approved', hasApproval);
-            return hasApproval;
+            core.setOutput('isOwnPR', isOwnPR);
+
+            if (isOwnPR) {
+              console.log(`⚠️ Skipping auto-approval: PR author (${prAuthor}) is the repository owner. GitHub doesn't allow self-approval.`);
+            }
+
+            return { hasApproval, isOwnPR };
 
       - name: Auto approve PR
-        if: steps.check.outputs.approved == 'false'
+        if: |
+          steps.check.outputs.approved == 'false' &&
+          steps.check.outputs.isOwnPR == 'false'
         env:
           GH_TOKEN: ${{ secrets.AUTO_APPROVE_TOKEN }}
         run: |
