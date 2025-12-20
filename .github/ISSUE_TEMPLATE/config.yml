@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: 💬 Discussions
+    url: https://github.com/Eji4h/rich-the-garbage/discussions
+    about: Ask questions, share ideas, or discuss the project
+  - name: 📖 Documentation
+    url: https://github.com/Eji4h/rich-the-garbage#readme
+    about: Check the README for setup instructions and documentation
