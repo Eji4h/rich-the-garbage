@@ -29,7 +29,7 @@ jobs:
             core.setOutput('number', prNumber);
             return prNumber;
 
-      - name: Check if already approved
+      - name: Check if already approved and validate PR author
         id: check
         if: steps.pr.outcome == 'success'
         uses: actions/github-script@v7
@@ -37,6 +37,17 @@ jobs:
           github-token: ${{ secrets.AUTO_APPROVE_TOKEN }}
           script: |
             const prNumber = ${{ steps.pr.outputs.number }};
+
+            // Get PR details to check author
+            const { data: pr } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: prNumber
+            });
+
+            const prAuthor = pr.user.login;
+            const repoOwner = context.repo.owner;
+            const isOwnPR = prAuthor === repoOwner;
 
             // Get existing reviews
             const { data: reviews } = await github.rest.pulls.listReviews({
@@ -49,16 +60,23 @@ jobs:
               review => review.state === 'APPROVED' && review.user.type === 'User'
             );
 
-            // Set output as string for GitHub Actions
-            core.setOutput('approved', String(hasApproval));
+            // Determine if we should approve (not already approved AND not owner's PR)
+            const shouldApprove = !hasApproval && !isOwnPR;
 
-            if (hasApproval) {
+            // Set outputs as strings for GitHub Actions
+            core.setOutput('approved', String(hasApproval));
+            core.setOutput('isOwnPR', String(isOwnPR));
+            core.setOutput('shouldApprove', String(shouldApprove));
+
+            if (isOwnPR) {
+              console.log(`⚠️ Skipping auto-approval: PR author (${prAuthor}) is the repository owner. GitHub doesn't allow self-approval.`);
+            } else if (hasApproval) {
               console.log(`ℹ️ PR #${prNumber} is already approved.`);
             } else {
-              console.log(`✅ PR #${prNumber} will be auto-approved.`);
+              console.log(`✅ PR #${prNumber} from ${prAuthor} will be auto-approved.`);
             }
 
-            return hasApproval;
+            return { hasApproval, isOwnPR, shouldApprove };
 
       - name: Auto approve PR
         if: steps.check.outcome == 'success'
@@ -66,7 +84,7 @@ jobs:
           GH_TOKEN: ${{ secrets.AUTO_APPROVE_TOKEN }}
         run: |
           PR_NUMBER="${{ steps.pr.outputs.number }}"
-          IS_APPROVED="${{ steps.check.outputs.approved }}"
-          if [ "$IS_APPROVED" != "true" ]; then
+          SHOULD_APPROVE="${{ steps.check.outputs.shouldApprove }}"
+          if [ "$SHOULD_APPROVE" == "true" ]; then
             gh pr review "$PR_NUMBER" --repo ${{ github.repository }} --approve --body "✅ Auto-approved: All CI checks passed!"
           fi
