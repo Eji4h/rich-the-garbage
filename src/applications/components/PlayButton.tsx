@@ -39,4 +39,3 @@ export function PlayButton({ onPlay }: PlayButtonProps) {
     </>
   );
 }
-

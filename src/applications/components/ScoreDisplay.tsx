@@ -5,10 +5,7 @@ interface ScoreDisplayProps {
   clientScore: number | null;
 }
 
-export function ScoreDisplay({
-  globalScore,
-  clientScore,
-}: ScoreDisplayProps) {
+export function ScoreDisplay({ globalScore, clientScore }: ScoreDisplayProps) {
   return (
     <div className="flex gap-12 items-center">
       {/* Global Score */}
@@ -39,4 +36,3 @@ export function ScoreDisplay({
     </div>
   );
 }
-

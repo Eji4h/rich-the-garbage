@@ -63,4 +63,3 @@ export function GameModal({ onClose }: GameModalProps) {
     </motion.div>
   );
 }
-
