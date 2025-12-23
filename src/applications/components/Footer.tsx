@@ -1,3 +1,5 @@
+import { DonateButton } from './DonateButton';
+
 // Constants
 const GITHUB_URL = 'https://github.com/Eji4h/rich-the-garbage';
 
@@ -81,6 +83,15 @@ export default function Footer() {
 
       <div className="relative z-10">
         <Divider />
+
+        {/* Support Section */}
+        <div className="mb-6">
+          <p className="text-slate-700 text-sm mb-3">
+            Love this project? Help keep it running!
+          </p>
+          <DonateButton variant="inline" />
+        </div>
+
         <GitHubLink />
         <Copyright />
       </div>
