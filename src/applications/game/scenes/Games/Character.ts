@@ -22,9 +22,7 @@ export class Character {
     return this._isAnimating;
   }
 
-  constructor(private readonly scene: GameScene) {
-    this.scene = scene;
-  }
+  constructor(private readonly scene: GameScene) {}
 
   preload() {
     this.scene.load.spritesheet(Character.characterKey, characterSpritePath, {
