@@ -4,6 +4,8 @@ export interface Env {
   LIKES_KV: KVNamespace;
   SCORE_KV: KVNamespace;
   ASSETS: Fetcher;
+  STRIPE_SECRET_KEY: string;
+  STRIPE_WEBHOOK_SECRET: string;
 }
 
 export interface LikeData {
@@ -29,4 +31,30 @@ export interface ErrorResponse {
 
 export interface ScoreRequestBody {
   score?: number;
+}
+
+export interface DonateRequestBody {
+  amount: number;
+}
+
+export interface DonateCheckoutResponse {
+  url: string;
+}
+
+export interface StripeCheckoutSession {
+  id: string;
+  url: string;
+}
+
+export interface StripeWebhookEvent {
+  id: string;
+  type: string;
+  data: {
+    object: {
+      id: string;
+      amount_total?: number;
+      customer_email?: string;
+      payment_status?: string;
+    };
+  };
 }

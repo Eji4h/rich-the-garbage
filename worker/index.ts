@@ -3,6 +3,7 @@
 import { Env } from './types';
 import { handleScoreApi } from './services/score';
 import { handleLikesApi } from './services/likes';
+import { handleDonateApi } from './services/donate';
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
@@ -14,6 +15,10 @@ export default {
 
     if (url.pathname.startsWith('/api/likes/')) {
       return handleLikesApi(request, env);
+    }
+
+    if (url.pathname.startsWith('/api/donate/')) {
+      return handleDonateApi(request, env);
     }
 
     return env.ASSETS.fetch(request);
