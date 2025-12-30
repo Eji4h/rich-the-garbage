@@ -1,4 +1,4 @@
-import { GameScene } from './scenes/Games/GameScene';
+import { DrinkGameScene } from './scenes/Games/DrinkGameScene';
 import { AUTO, Game, Scale } from 'phaser';
 import { RandomDrinkOutComeImpl } from './scenes/Games/repositories/RandomDrinkOutCome.imp';
 import { ScoreApi } from '../../adapters/outbounds/repositories/Score.imp';
@@ -22,10 +22,10 @@ const StartGame = (parent: string) => {
   const randomDrinkOutCome = new RandomDrinkOutComeImpl();
   const scoreRepository = new ScoreApi();
   game.scene.add(
-    GameScene.SceneName,
-    new GameScene(randomDrinkOutCome, scoreRepository),
+    DrinkGameScene.SceneName,
+    new DrinkGameScene(randomDrinkOutCome, scoreRepository),
   );
-  game.scene.start(GameScene.SceneName);
+  game.scene.start(DrinkGameScene.SceneName);
   return game;
 };
 
