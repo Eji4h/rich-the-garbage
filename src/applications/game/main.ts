@@ -1,7 +1,5 @@
-import { DrinkGameScene } from './scenes/Games/DrinkGameScene';
 import { AUTO, Game, Scale } from 'phaser';
-import { RandomDrinkOutComeImpl } from './scenes/Games/repositories/RandomDrinkOutCome.imp';
-import { ScoreApi } from '../../adapters/outbounds/repositories/Score.imp';
+import { getGameById, type GameId } from './GameRegistry';
 
 //  Find out more information about the Game Config at:
 //  https://docs.phaser.io/api-documentation/typedef/types-core#gameconfig
@@ -17,15 +15,14 @@ const config: Phaser.Types.Core.GameConfig = {
   },
 };
 
-const StartGame = (parent: string) => {
+const StartGame = (parent: string, gameId: GameId) => {
   const game = new Game({ ...config, parent });
-  const randomDrinkOutCome = new RandomDrinkOutComeImpl();
-  const scoreRepository = new ScoreApi();
-  game.scene.add(
-    DrinkGameScene.SceneName,
-    new DrinkGameScene(randomDrinkOutCome, scoreRepository),
-  );
-  game.scene.start(DrinkGameScene.SceneName);
+  const gameEntry = getGameById(gameId);
+  const scene = gameEntry.createScene();
+
+  game.scene.add(gameEntry.sceneName, scene);
+  game.scene.start(gameEntry.sceneName);
+
   return game;
 };
 
