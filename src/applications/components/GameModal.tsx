@@ -1,6 +1,7 @@
 import { useRef } from 'react';
 import { motion } from 'framer-motion';
 import { IRefPhaserGame, PhaserGame } from '../../PhaserGame';
+import { DonateButton } from './DonateButton';
 
 interface GameModalProps {
   onClose: () => void;
@@ -60,6 +61,11 @@ export function GameModal({ onClose }: GameModalProps) {
       <p className="mt-3 text-center text-slate-700 text-sm">
         Tap the character to drink! Every tap adds to the global total! 🌍
       </p>
+
+      {/* Donate link */}
+      <div className="mt-2 text-center">
+        <DonateButton variant="inline" />
+      </div>
     </motion.div>
   );
 }

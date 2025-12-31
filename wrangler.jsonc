@@ -14,6 +14,12 @@
       "binding": "SCORE_KV",
       "id": "96ebd64b7ca84fadad4a54da461a60b9",
     },
+    {
+      "binding": "DONATIONS_KV",
+      // TODO: Replace with your actual KV namespace ID
+      // Run: wrangler kv:namespace create "DONATIONS_KV"
+      "id": "YOUR_DONATIONS_KV_NAMESPACE_ID",
+    },
   ],
   "observability": {
     "logs": {

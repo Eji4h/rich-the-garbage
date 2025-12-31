@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import FloatingGarbage from './applications/components/FloatingGarbage';
 import HeroCarousel from './applications/components/HeroCarousel';
 import GameSection from './applications/components/GameSection';
@@ -5,10 +6,35 @@ import GalleryHeader from './applications/components/GalleryHeader';
 import GalleryTabs from './applications/components/GalleryTabs';
 import Hacktoberfest from './applications/components/Hacktoberfest';
 import Footer from './applications/components/Footer';
+import { DonateHeader } from './applications/components/DonateHeader';
+import { DonateSuccess } from './applications/components/DonateSuccess';
+import { DonateCancel } from './applications/components/DonateCancel';
 
 function App() {
+  const [hash, setHash] = useState(window.location.hash);
+
+  useEffect(() => {
+    const handleHashChange = () => {
+      setHash(window.location.hash);
+    };
+
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
+
+  // Handle success/cancel pages
+  if (hash === '#/success') {
+    return <DonateSuccess />;
+  }
+
+  if (hash === '#/cancel') {
+    return <DonateCancel />;
+  }
+
+  // Main app
   return (
     <main className="min-h-screen relative overflow-hidden bg-linear-to-br from-pink-200 via-purple-200 to-blue-200 text-slate-800 font-['Outfit',sans-serif] antialiased selection:bg-purple-500/30">
+      <DonateHeader />
       <FloatingGarbage />
       <div className="relative z-10">
         <HeroCarousel />
