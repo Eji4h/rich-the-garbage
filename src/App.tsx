@@ -6,10 +6,11 @@ import GalleryHeader from './applications/components/GalleryHeader';
 import GalleryTabs from './applications/components/GalleryTabs';
 import Hacktoberfest from './applications/components/Hacktoberfest';
 import Footer from './applications/components/Footer';
-import { DonateHeader } from './applications/components/DonateHeader';
+import { HeaderDonateButton } from './applications/components/HeaderDonateButton';
 import { DonateSuccess } from './applications/components/DonateSuccess';
 import { DonateCancel } from './applications/components/DonateCancel';
 import { DonateModalProvider } from './applications/hooks/useDonateModal';
+import { featureFlags } from './config/featureFlags';
 
 function App() {
   const [hash, setHash] = useState(window.location.hash);
@@ -24,41 +25,56 @@ function App() {
   }, []);
 
   // Handle success/cancel pages
-  if (hash === '#/success') {
+  if (hash === '#/donate-success') {
+    if (!featureFlags.donation) {
+      // Redirect to home if donation feature is disabled
+      window.location.hash = '';
+      return null;
+    }
     return <DonateSuccess />;
   }
 
-  if (hash === '#/cancel') {
+  if (hash === '#/donate-cancel') {
+    if (!featureFlags.donation) {
+      // Redirect to home if donation feature is disabled
+      window.location.hash = '';
+      return null;
+    }
     return <DonateCancel />;
   }
 
-  // Main app
-  return (
-    <DonateModalProvider>
-      <main className="min-h-screen relative overflow-hidden bg-linear-to-br from-pink-200 via-purple-200 to-blue-200 text-slate-800 font-['Outfit',sans-serif] antialiased selection:bg-purple-500/30">
-        <DonateHeader />
-        <FloatingGarbage />
-        <div className="relative z-10">
-          <HeroCarousel />
+  // Main app content
+  const mainContent = (
+    <main className="min-h-screen relative overflow-hidden bg-linear-to-br from-pink-200 via-purple-200 to-blue-200 text-slate-800 font-['Outfit',sans-serif] antialiased selection:bg-purple-500/30">
+      <HeaderDonateButton />
+      <FloatingGarbage />
+      <div className="relative z-10">
+        <HeroCarousel />
 
-          {/* Game Section */}
-          <div className="relative z-20">
-            <GameSection />
-          </div>
-
-          <div className="relative z-10 pb-20 bg-linear-to-b from-transparent to-white/30 backdrop-blur-[2px]">
-            <GalleryHeader />
-            <GalleryTabs />
-          </div>
-
-          {/* Hacktoberfest / Contribute Section */}
-          <Hacktoberfest />
-
-          <Footer />
+        {/* Game Section */}
+        <div className="relative z-20">
+          <GameSection />
         </div>
-      </main>
-    </DonateModalProvider>
+
+        <div className="relative z-10 pb-20 bg-linear-to-b from-transparent to-white/30 backdrop-blur-[2px]">
+          <GalleryHeader />
+          <GalleryTabs />
+        </div>
+
+        {/* Hacktoberfest / Contribute Section */}
+        <Hacktoberfest />
+
+        <Footer />
+      </div>
+    </main>
   );
+
+  // Wrap with DonateModalProvider only if donation feature is enabled
+  if (featureFlags.donation) {
+    return <DonateModalProvider>{mainContent}</DonateModalProvider>;
+  }
+
+  return mainContent;
 }
 
 export default App;

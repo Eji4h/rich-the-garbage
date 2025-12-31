@@ -15,7 +15,7 @@ export function DonateButton({
   const getButtonClasses = () => {
     switch (variant) {
       case 'sticky':
-        return 'inline-flex items-center gap-2 px-3 py-1.5 text-sm bg-linear-to-r from-purple-600 to-pink-600 text-white rounded-full hover:from-purple-700 hover:to-pink-700 transition-all shadow-lg hover:shadow-xl font-medium animate-pulse';
+        return 'inline-flex items-center justify-center w-14 h-14 bg-linear-to-r from-purple-600 to-pink-600 text-white rounded-full hover:from-purple-700 hover:to-pink-700 transition-all shadow-lg hover:shadow-xl animate-pulse';
       case 'hero':
         return 'inline-flex items-center gap-3 px-8 py-4 text-lg bg-linear-to-r from-purple-600 to-pink-600 text-white rounded-xl hover:from-purple-700 hover:to-pink-700 transition-all shadow-2xl hover:shadow-purple-500/50 font-bold hover:scale-105 animate-pulse';
       case 'subtle':
@@ -31,8 +31,6 @@ export function DonateButton({
     switch (variant) {
       case 'hero':
         return 'Support Us';
-      case 'sticky':
-        return 'Donate';
       default:
         return 'Donate';
     }
@@ -45,10 +43,17 @@ export function DonateButton({
         onMouseEnter={prefetchModal}
         onFocus={prefetchModal}
         className={getButtonClasses()}
+        aria-label={variant === 'sticky' ? 'Donate' : undefined}
       >
         {variant !== 'inline' && (
           <svg
-            className={variant === 'hero' ? 'w-6 h-6' : 'w-5 h-5'}
+            className={
+              variant === 'hero'
+                ? 'w-6 h-6'
+                : variant === 'sticky'
+                  ? 'w-7 h-7'
+                  : 'w-5 h-5'
+            }
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -62,7 +67,7 @@ export function DonateButton({
             />
           </svg>
         )}
-        <span>{getButtonText()}</span>
+        {variant !== 'sticky' && <span>{getButtonText()}</span>}
         {variant === 'hero' && (
           <span className="text-2xl animate-bounce">✨</span>
         )}

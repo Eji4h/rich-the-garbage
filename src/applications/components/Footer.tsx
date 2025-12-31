@@ -1,4 +1,4 @@
-import { DonateButton } from './DonateButton';
+import { FooterDonateButton } from './FooterDonateButton';
 
 // Constants
 const GITHUB_URL = 'https://github.com/Eji4h/rich-the-garbage';
@@ -60,14 +60,6 @@ function GitHubLink() {
   );
 }
 
-function DonateLink() {
-  return (
-    <div className="mb-6">
-      <DonateButton variant="default" />
-    </div>
-  );
-}
-
 function Copyright() {
   const currentYear = new Date().getFullYear();
 
@@ -92,7 +84,7 @@ export default function Footer() {
       <div className="relative z-10">
         <Divider />
         <GitHubLink />
-        <DonateLink />
+        <FooterDonateButton />
         <Copyright />
       </div>
     </footer>

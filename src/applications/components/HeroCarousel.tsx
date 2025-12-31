@@ -4,7 +4,7 @@ import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
 import { galleryVideos } from '../../utils/videos';
-import { DonateButton } from './DonateButton';
+import HeroDonationButton from './HeroDonation';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -152,7 +152,7 @@ function AIDisclaimer() {
 
 function HeroContent() {
   return (
-    <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4 z-10">
+    <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-8 md:px-16 lg:px-24 z-10">
       <motion.h1
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
@@ -169,13 +169,8 @@ function HeroContent() {
       >
         A collection of moments frozen in time.
       </motion.p>
-      <motion.div
-        initial={{ y: 20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.7, duration: ANIMATION_DURATION }}
-      >
-        <DonateButton variant="hero" />
-      </motion.div>
+
+      <HeroDonationButton duration={ANIMATION_DURATION} />
     </div>
   );
 }
