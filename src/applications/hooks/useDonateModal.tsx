@@ -55,6 +55,7 @@ export function DonateModalProvider({ children }: { children: ReactNode }) {
   );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useDonateModal() {
   const context = useContext(DonateModalContext);
   if (context === undefined) {
