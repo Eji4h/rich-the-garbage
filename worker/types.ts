@@ -46,26 +46,3 @@ export interface DonateRequestBody {
 export interface DonateResponse {
   url: string;
 }
-
-export interface StripeEventData {
-  eventId: string;
-  type: string;
-  created: number;
-  livemode: boolean;
-  apiVersion?: string;
-  request?: {
-    id?: string;
-    idempotencyKey?: string;
-  };
-  object: {
-    kind: 'checkout.session' | 'payment_intent' | 'other';
-    id: string;
-    amountTotalMinor?: number;
-    currency?: string;
-    status?: string;
-    paymentStatus?: string;
-    mode?: string;
-  };
-  receivedAt: string;
-  raw: unknown;
-}

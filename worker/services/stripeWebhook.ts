@@ -1,4 +1,5 @@
-import { Env, StripeEventData, ErrorResponse } from '../types';
+import Stripe from 'stripe';
+import { Env, ErrorResponse } from '../types';
 import { jsonResponse, errorResponse } from '../response';
 
 const STRIPE_EVENT_PREFIX = 'stripe:event:';
@@ -6,19 +7,9 @@ const STRIPE_APPLIED_PREFIX = 'stripe:applied:';
 const STRIPE_BY_DAY_PREFIX = 'stripe:byDay:';
 const STRIPE_BY_TYPE_PREFIX = 'stripe:byType:';
 
-interface StripeEvent {
-  id: string;
-  type: string;
-  created: number;
-  livemode: boolean;
-  api_version?: string;
-  request?: {
-    id?: string;
-    idempotency_key?: string;
-  };
-  data: {
-    object: unknown;
-  };
+interface StoredStripeEvent {
+  receivedAt: string;
+  event: Stripe.Event;
 }
 
 function redactPII(obj: unknown): unknown {
@@ -60,82 +51,10 @@ function redactPII(obj: unknown): unknown {
   return redacted;
 }
 
-function normalizeEventObject(data: StripeEvent): StripeEventData['object'] {
-  const obj = data.data.object as Record<string, unknown>;
-
-  const kind =
-    obj.object === 'checkout.session'
-      ? 'checkout.session'
-      : obj.object === 'payment_intent'
-        ? 'payment_intent'
-        : 'other';
-
-  return {
-    kind,
-    id: (obj.id as string) || '',
-    amountTotalMinor:
-      typeof obj.amount_total === 'number'
-        ? obj.amount_total
-        : typeof obj.amount === 'number'
-          ? obj.amount
-          : undefined,
-    currency: obj.currency as string | undefined,
-    status: obj.status as string | undefined,
-    paymentStatus: obj.payment_status as string | undefined,
-    mode: obj.mode as string | undefined,
-  };
-}
-
-async function verifyStripeSignature(
-  payload: string,
-  signature: string,
-  secret: string,
-): Promise<boolean> {
-  try {
-    const elements = signature.split(',');
-    const timestamp = elements.find((e) => e.startsWith('t='))?.split('=')[1];
-    const signatures = elements
-      .filter((e) => e.startsWith('v1='))
-      .map((e) => e.split('=')[1]);
-
-    if (!timestamp || signatures.length === 0) {
-      return false;
-    }
-
-    const signedPayload = `${timestamp}.${payload}`;
-    const encoder = new TextEncoder();
-    const keyData = encoder.encode(secret);
-    const messageData = encoder.encode(signedPayload);
-
-    const cryptoKey = await crypto.subtle.importKey(
-      'raw',
-      keyData,
-      { name: 'HMAC', hash: 'SHA-256' },
-      false,
-      ['sign'],
-    );
-
-    const signatureBuffer = await crypto.subtle.sign(
-      'HMAC',
-      cryptoKey,
-      messageData,
-    );
-
-    const signatureHex = Array.from(new Uint8Array(signatureBuffer))
-      .map((b) => b.toString(16).padStart(2, '0'))
-      .join('');
-
-    return signatures.some((sig) => sig === signatureHex);
-  } catch (error) {
-    console.error('Error verifying signature:', error);
-    return false;
-  }
-}
-
 async function storeEvent(
   kv: KVNamespace,
-  event: StripeEvent,
-  rawRedacted: unknown,
+  event: Stripe.Event,
+  redactedEvent: Stripe.Event,
 ): Promise<void> {
   const eventId = event.id;
   const eventKey = `${STRIPE_EVENT_PREFIX}${eventId}`;
@@ -146,25 +65,13 @@ async function storeEvent(
     return; // Already processed, skip
   }
 
-  const normalized: StripeEventData = {
-    eventId,
-    type: event.type,
-    created: event.created,
-    livemode: event.livemode,
-    apiVersion: event.api_version,
-    request: event.request
-      ? {
-          id: event.request.id,
-          idempotencyKey: event.request.idempotency_key,
-        }
-      : undefined,
-    object: normalizeEventObject(event),
+  const stored: StoredStripeEvent = {
     receivedAt: new Date().toISOString(),
-    raw: rawRedacted,
+    event: redactedEvent,
   };
 
   // Store the event
-  await kv.put(eventKey, JSON.stringify(normalized));
+  await kv.put(eventKey, JSON.stringify(stored));
 
   // Store pointer keys for querying
   const dateStr = new Date(event.created * 1000)
@@ -177,8 +84,7 @@ async function storeEvent(
 
 async function updateProjections(
   kv: KVNamespace,
-  event: StripeEvent,
-  normalized: StripeEventData['object'],
+  event: Stripe.Event,
 ): Promise<void> {
   const eventId = event.id;
   const appliedKey = `${STRIPE_APPLIED_PREFIX}${eventId}`;
@@ -197,16 +103,24 @@ async function updateProjections(
     return;
   }
 
-  // Only process if payment was successful
-  if (
-    normalized.status !== 'complete' &&
-    normalized.paymentStatus !== 'succeeded'
-  ) {
-    return;
+  let amountMinor: number | undefined;
+  let shouldProcess = false;
+
+  if (event.type === 'checkout.session.completed') {
+    const session = event.data.object as Stripe.Checkout.Session;
+    if (session.payment_status === 'paid' && session.amount_total) {
+      amountMinor = session.amount_total;
+      shouldProcess = true;
+    }
+  } else if (event.type === 'payment_intent.succeeded') {
+    const paymentIntent = event.data.object as Stripe.PaymentIntent;
+    if (paymentIntent.status === 'succeeded') {
+      amountMinor = paymentIntent.amount_received ?? paymentIntent.amount;
+      shouldProcess = true;
+    }
   }
 
-  const amountMinor = normalized.amountTotalMinor;
-  if (!amountMinor || amountMinor <= 0) {
+  if (!shouldProcess || !amountMinor || amountMinor <= 0) {
     return;
   }
 
@@ -253,7 +167,7 @@ export async function handleStripeWebhook(
   try {
     // Get raw body for signature verification
     const rawBody = await request.text();
-    const signature = request.headers.get('Stripe-Signature');
+    const signature = request.headers.get('stripe-signature');
 
     if (!signature) {
       return jsonResponse<ErrorResponse>(
@@ -262,34 +176,36 @@ export async function handleStripeWebhook(
       );
     }
 
-    // Verify signature
-    const isValid = await verifyStripeSignature(
+    // Initialize Stripe with Web Crypto for Workers
+    const webCrypto = Stripe.createSubtleCryptoProvider();
+
+    // Verify signature and construct event using Stripe SDK
+    const event = await Stripe.webhooks.constructEventAsync(
       rawBody,
       signature,
       env.STRIPE_WEBHOOK_SECRET,
+      undefined,
+      webCrypto,
     );
 
-    if (!isValid) {
-      return jsonResponse<ErrorResponse>({ error: 'Invalid signature' }, 401);
-    }
-
-    // Parse event
-    const event = JSON.parse(rawBody) as StripeEvent;
-
-    // Redact PII from raw payload
-    const rawRedacted = redactPII(JSON.parse(rawBody));
+    // Redact PII from event (convert to plain object, redact, then back to Stripe.Event shape)
+    const eventJson = JSON.parse(JSON.stringify(event)) as unknown;
+    const redactedJson = redactPII(eventJson);
+    const redactedEvent = redactedJson as Stripe.Event;
 
     // Store event (idempotent - returns early if exists)
-    await storeEvent(env.DONATIONS_KV, event, rawRedacted);
+    await storeEvent(env.DONATIONS_KV, event, redactedEvent);
 
     // Update projections (idempotent - checks applied marker)
-    const normalized = normalizeEventObject(event);
-    await updateProjections(env.DONATIONS_KV, event, normalized);
+    await updateProjections(env.DONATIONS_KV, event);
 
     // Always return 200 OK (even for duplicates)
     return jsonResponse({ received: true });
   } catch (error) {
     console.error('Error handling webhook:', error);
+    if (error instanceof Stripe.errors.StripeSignatureVerificationError) {
+      return jsonResponse<ErrorResponse>({ error: 'Invalid signature' }, 401);
+    }
     return errorResponse(
       'Failed to process webhook',
       error instanceof Error ? error.message : 'Unknown error',

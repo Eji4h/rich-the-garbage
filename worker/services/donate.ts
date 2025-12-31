@@ -1,3 +1,4 @@
+import Stripe from 'stripe';
 import {
   Env,
   DonateResponse,
@@ -6,7 +7,6 @@ import {
 } from '../types';
 import { jsonResponse, errorResponse, handleOptions } from '../response';
 
-const STRIPE_API_BASE = 'https://api.stripe.com/v1';
 const MIN_AMOUNT_MINOR = 100; // $1.00 or equivalent
 const MAX_AMOUNT_MINOR = 100000; // $1000.00 or equivalent
 
@@ -35,9 +35,10 @@ const STRIPE_SUPPORTED_CURRENCIES = [
   'zar',
 ];
 
-interface StripeCheckoutSessionResponse {
-  id: string;
-  url: string;
+function createStripeClient(secretKey: string): Stripe {
+  return new Stripe(secretKey, {
+    httpClient: Stripe.createFetchHttpClient(),
+  });
 }
 
 async function createStripeCheckoutSession(
@@ -46,11 +47,13 @@ async function createStripeCheckoutSession(
   successUrl: string,
   cancelUrl: string,
   secretKey: string,
-): Promise<StripeCheckoutSessionResponse> {
-  const params = new URLSearchParams({
+): Promise<Stripe.Checkout.Session> {
+  const stripe = createStripeClient(secretKey);
+
+  const session = await stripe.checkout.sessions.create({
     mode: 'payment',
-    payment_method_types: 'card',
-    line_items: JSON.stringify([
+    payment_method_types: ['card'],
+    line_items: [
       {
         price_data: {
           currency,
@@ -62,26 +65,12 @@ async function createStripeCheckoutSession(
         },
         quantity: 1,
       },
-    ]),
+    ],
     success_url: successUrl,
     cancel_url: cancelUrl,
   });
 
-  const response = await fetch(`${STRIPE_API_BASE}/checkout/sessions`, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${secretKey}`,
-      'Content-Type': 'application/x-www-form-urlencoded',
-    },
-    body: params.toString(),
-  });
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`Stripe API error: ${response.status} ${errorText}`);
-  }
-
-  return (await response.json()) as StripeCheckoutSessionResponse;
+  return session;
 }
 
 function validateAmount(amountMinor: number): boolean {
@@ -139,6 +128,10 @@ async function handlePostDonate(request: Request, env: Env): Promise<Response> {
       cancelUrl,
       env.STRIPE_SECRET_KEY,
     );
+
+    if (!checkoutSession.url) {
+      throw new Error('Checkout session URL not returned from Stripe');
+    }
 
     return jsonResponse<DonateResponse>({ url: checkoutSession.url });
   } catch (error) {
