@@ -34,8 +34,8 @@ export class Character {
   create() {
     this.createAnimations();
     this.characterSprite = this.scene.add.sprite(
-      512,
-      340,
+      256,
+      256,
       Character.characterKey,
     );
     this.characterSprite.setScale(this.baseScale);

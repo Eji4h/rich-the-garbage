@@ -1,7 +1,7 @@
 import { ObservableScore } from '../DrinkGame/ObservableScore';
 
-class TricksterScoreSingleton {
-  private static instance: TricksterScoreSingleton | null = null;
+class BeerServeScoreSingleton {
+  private static instance: BeerServeScoreSingleton | null = null;
 
   public readonly clientScore: ObservableScore;
   public readonly globalScore: ObservableScore;
@@ -11,9 +11,9 @@ class TricksterScoreSingleton {
     this.globalScore = new ObservableScore(0);
   }
 
-  public static getInstance(): TricksterScoreSingleton {
-    TricksterScoreSingleton.instance ??= new TricksterScoreSingleton();
-    return TricksterScoreSingleton.instance;
+  public static getInstance(): BeerServeScoreSingleton {
+    BeerServeScoreSingleton.instance ??= new BeerServeScoreSingleton();
+    return BeerServeScoreSingleton.instance;
   }
 
   public reset(): void {
@@ -22,4 +22,4 @@ class TricksterScoreSingleton {
   }
 }
 
-export const tricksterScoreSingleton = TricksterScoreSingleton.getInstance();
+export const beerServeScoreSingleton = BeerServeScoreSingleton.getInstance();

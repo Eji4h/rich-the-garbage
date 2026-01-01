@@ -1,10 +1,10 @@
 import { Scene } from 'phaser';
 import { DrinkGameScene } from './scenes/DrinkGame/DrinkGameScene';
 import { RandomDrinkOutComeImpl } from './scenes/DrinkGame/repositories/RandomDrinkOutCome.imp';
-import { TricksterScene } from './scenes/Trickster/TricksterScene';
+import { BeerServeScene } from './scenes/BeerServe/BeerServeScene';
 import { ScoreApi } from '../../adapters/outbounds/repositories/Score.imp';
 
-export type GameId = 'drink' | 'trickster';
+export type GameId = 'drink' | 'beerserve';
 
 export interface GameMetadata {
   id: GameId;
@@ -34,15 +34,16 @@ export const gameRegistry: Record<GameId, GameEntry> = {
       return new DrinkGameScene(randomDrinkOutCome, scoreRepository);
     },
   },
-  trickster: {
-    id: 'trickster',
-    name: 'Trickster',
-    description: 'Coming soon! A tricky game awaits...',
-    icon: '🃏',
-    gradient: 'from-purple-500 via-violet-500 to-indigo-600',
-    sceneName: TricksterScene.SceneName,
+  beerserve: {
+    id: 'beerserve',
+    name: 'Beer Serve',
+    description:
+      'Serve beer to Richy before he disappears! 60 seconds challenge.',
+    icon: '🍻',
+    gradient: 'from-amber-500 via-yellow-500 to-orange-500',
+    sceneName: BeerServeScene.SceneName,
     createScene: () => {
-      return new TricksterScene();
+      return new BeerServeScene();
     },
   },
 };
