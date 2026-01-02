@@ -1,13 +1,13 @@
 import { DrinkOutcomeType } from '../DrinkOutComes';
 import { FloatingTextGui } from './FloatingTextGui';
-import { GameScene } from '../GameScene';
+import { DrinkGameScene } from '../DrinkGameScene';
 
-export class GameSceneGui {
+export class DrinkGameSceneGui {
   private clientScoreText: Phaser.GameObjects.Text;
   private globalScoreText: Phaser.GameObjects.Text;
   private readonly floatingText: FloatingTextGui;
 
-  constructor(private readonly scene: GameScene) {
+  constructor(private readonly scene: DrinkGameScene) {
     this.floatingText = new FloatingTextGui(scene);
   }
 

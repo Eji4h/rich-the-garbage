@@ -2,13 +2,16 @@ import { useRef } from 'react';
 import { motion } from 'framer-motion';
 import { IRefPhaserGame, PhaserGame } from '../../PhaserGame';
 import { GameDonateButton } from './GameDonateButton';
+import { getGameById, type GameId } from '../game/GameRegistry';
 
 interface GameModalProps {
+  gameId: GameId;
   onClose: () => void;
 }
 
-export function GameModal({ onClose }: GameModalProps) {
+export function GameModal({ gameId, onClose }: GameModalProps) {
   const phaserRef = useRef<IRefPhaserGame | null>(null);
+  const game = getGameById(gameId);
 
   const handleSceneChange = (scene: Phaser.Scene) => {
     console.log('Current scene:', scene.scene.key);
@@ -28,6 +31,7 @@ export function GameModal({ onClose }: GameModalProps) {
           <div className="relative aspect-video max-w-4xl mx-auto">
             <PhaserGame
               ref={phaserRef}
+              gameId={gameId}
               currentActiveScene={handleSceneChange}
             />
 
@@ -59,7 +63,7 @@ export function GameModal({ onClose }: GameModalProps) {
 
       {/* Instructions */}
       <p className="mt-3 text-center text-slate-700 text-sm">
-        Tap the character to drink! Every tap adds to the global total! 🌍
+        {game.icon} {game.description}
       </p>
 
       {/* Donate link */}
