@@ -2,6 +2,7 @@ import {
   Donate,
   DonateResponse,
 } from '../../../applications/ports/Donate.port';
+import { getClientId } from '../../../utils/clientId';
 
 export class DonateApi implements Donate {
   async createCheckoutSession(
@@ -12,6 +13,7 @@ export class DonateApi implements Donate {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'X-Client-ID': getClientId(),
       },
       body: JSON.stringify({ amountMinor, currency }),
     });
