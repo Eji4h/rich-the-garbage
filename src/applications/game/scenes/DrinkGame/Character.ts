@@ -1,5 +1,5 @@
 import { characterSpritePath } from '../../AssetPath';
-import { GameScene } from './GameScene';
+import { DrinkGameScene } from './DrinkGameScene';
 
 const AnimationsKeys = {
   idle: 'idle',
@@ -22,7 +22,7 @@ export class Character {
     return this._isAnimating;
   }
 
-  constructor(private readonly scene: GameScene) {}
+  constructor(private readonly scene: DrinkGameScene) {}
 
   preload() {
     this.scene.load.spritesheet(Character.characterKey, characterSpritePath, {
@@ -34,8 +34,8 @@ export class Character {
   create() {
     this.createAnimations();
     this.characterSprite = this.scene.add.sprite(
-      512,
-      340,
+      256,
+      256,
       Character.characterKey,
     );
     this.characterSprite.setScale(this.baseScale);

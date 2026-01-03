@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { scoreSingleton } from '../game/scenes/Games/ScoreSingleton';
+import { scoreSingleton } from '../game/scenes/DrinkGame/ScoreSingleton';
 import { ScoreApi } from '../../adapters/outbounds/repositories/Score.imp';
 
 interface UseScoreReturn {

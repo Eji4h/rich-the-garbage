@@ -2,31 +2,31 @@ import { EventBus } from '../../EventBus';
 import { Scene } from 'phaser';
 import { Character } from './Character';
 import { match } from 'ts-pattern';
-import { GameSceneGui } from './gui/GameSceneGui';
+import { DrinkGameSceneGui } from './gui/DrinkGameSceneGui';
 import { DrinkOutCome, DrinkOutComesScoreDict } from './DrinkOutComes';
 import { RandomDrinkOutCome } from './ports/RandomDrinkOutCome.port';
 import { Score } from '../../../ports/Score.port';
 import { ScoreSync } from './ScoreSync';
 import { scoreSingleton } from './ScoreSingleton';
 
-export class GameScene extends Scene {
-  public static readonly SceneName = 'Game';
+export class DrinkGameScene extends Scene {
+  public static readonly SceneName = 'DrinkGame';
 
   public readonly clientScore = scoreSingleton.clientScore;
   public readonly globalScore = scoreSingleton.globalScore;
 
   private particles: Phaser.GameObjects.Particles.ParticleEmitter;
   private readonly character: Character;
-  private readonly gui: GameSceneGui;
+  private readonly gui: DrinkGameSceneGui;
   private readonly scoreSync: ScoreSync;
 
   constructor(
     private readonly randomDrinkOutComePort: RandomDrinkOutCome,
     private readonly scorePort: Score,
   ) {
-    super(GameScene.SceneName);
+    super(DrinkGameScene.SceneName);
     this.character = new Character(this);
-    this.gui = new GameSceneGui(this);
+    this.gui = new DrinkGameSceneGui(this);
     this.scoreSync = new ScoreSync(
       this,
       this.scorePort,
