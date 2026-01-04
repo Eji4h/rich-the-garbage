@@ -1,3 +1,10 @@
+import {
+  SUPPORTED_CURRENCIES,
+  getCurrencyDecimals as getCurrencyDecimalsShared,
+  getCurrencyPresetMinors,
+  getCurrencyLimitsMinor,
+} from '../../shared/currencyRules';
+
 // Currency code to symbol mapping
 const CURRENCY_SYMBOLS: Record<string, string> = {
   usd: '$',
@@ -19,6 +26,7 @@ const CURRENCY_SYMBOLS: Record<string, string> = {
   inr: '₹',
   krw: '₩',
   cny: '¥',
+  twd: 'NT$',
   mxn: '$',
   brl: 'R$',
   zar: 'R',
@@ -55,31 +63,6 @@ const LOCALE_TO_CURRENCY: Record<string, string> = {
   'af-ZA': 'zar',
 };
 
-// Stripe supported currencies (common ones)
-const STRIPE_SUPPORTED_CURRENCIES = [
-  'usd',
-  'thb',
-  'eur',
-  'gbp',
-  'jpy',
-  'cad',
-  'aud',
-  'sgd',
-  'hkd',
-  'nzd',
-  'chf',
-  'sek',
-  'nok',
-  'dkk',
-  'pln',
-  'czk',
-  'inr',
-  'krw',
-  'mxn',
-  'brl',
-  'zar',
-];
-
 export function detectCurrencyFromLocale(): string {
   if (typeof window === 'undefined') {
     return 'usd';
@@ -89,14 +72,19 @@ export function detectCurrencyFromLocale(): string {
 
   // Try exact match first
   if (LOCALE_TO_CURRENCY[locale]) {
-    return LOCALE_TO_CURRENCY[locale];
+    const currency = LOCALE_TO_CURRENCY[locale];
+    if (isValidCurrency(currency)) {
+      return currency;
+    }
   }
 
   // Try language code match (e.g., 'en' from 'en-US')
   const languageCode = locale.split('-')[0];
   for (const [key, currency] of Object.entries(LOCALE_TO_CURRENCY)) {
     if (key.startsWith(languageCode)) {
-      return currency;
+      if (isValidCurrency(currency)) {
+        return currency;
+      }
     }
   }
 
@@ -108,18 +96,23 @@ export function getCurrencySymbol(currency: string): string {
   return CURRENCY_SYMBOLS[currency.toLowerCase()] || currency.toUpperCase();
 }
 
+export function getCurrencyDecimals(currency: string): number {
+  // Stripe “zero-decimal” currencies (subset we support)
+  return getCurrencyDecimalsShared(currency);
+}
+
 export function formatAmount(amountMinor: number, currency: string): string {
   const symbol = getCurrencySymbol(currency);
-  const amount = amountMinor / 100;
-
-  // Special handling for currencies without decimals
-  const decimals = ['jpy', 'krw'].includes(currency.toLowerCase()) ? 0 : 2;
+  const decimals = getCurrencyDecimals(currency);
+  const amount = amountMinor / 10 ** decimals;
 
   return `${symbol}${amount.toFixed(decimals)}`;
 }
 
 export function isValidCurrency(currency: string): boolean {
-  return STRIPE_SUPPORTED_CURRENCIES.includes(currency.toLowerCase());
+  return SUPPORTED_CURRENCIES.includes(
+    currency.toLowerCase() as (typeof SUPPORTED_CURRENCIES)[number],
+  );
 }
 
 export function getSupportedCurrencies(): Array<{
@@ -127,9 +120,27 @@ export function getSupportedCurrencies(): Array<{
   name: string;
   symbol: string;
 }> {
-  return STRIPE_SUPPORTED_CURRENCIES.map((code) => ({
+  return SUPPORTED_CURRENCIES.map((code) => ({
     code,
     name: code.toUpperCase(),
     symbol: getCurrencySymbol(code),
   }));
+}
+
+export function getDonationPresetAmounts(currency: string): Array<{
+  label: string;
+  amountMinor: number;
+}> {
+  const presetMinors = getCurrencyPresetMinors(currency);
+  return presetMinors.map((amountMinor) => ({
+    label: formatAmount(amountMinor, currency),
+    amountMinor,
+  }));
+}
+
+export function getDonationLimits(currency: string): {
+  minMinor: number;
+  maxMinor: number;
+} {
+  return getCurrencyLimitsMinor(currency);
 }

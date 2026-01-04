@@ -6,20 +6,59 @@ import { useDonateModal } from '../hooks/useDonateModal';
 import {
   detectCurrencyFromLocale,
   formatAmount,
+  getCurrencyDecimals,
   getSupportedCurrencies,
+  getDonationPresetAmounts,
+  getDonationLimits,
 } from '../../utils/currency';
 
-const BASE_AMOUNTS = [5, 10, 20, 50]; // Base amounts that will be converted to minor units
+function parseAmountMajorToMinor(
+  amountMajorInput: string,
+  currency: string,
+): number | null {
+  const decimals = getCurrencyDecimals(currency);
+  const limits = getDonationLimits(currency);
+
+  const normalized = amountMajorInput.trim().replace(',', '.');
+  if (!normalized) return null;
+  if (!/^\d+(\.\d+)?$/.test(normalized)) return null;
+
+  const [intPartRaw, fracRaw = ''] = normalized.split('.');
+  const intPart = Number(intPartRaw);
+  if (!Number.isFinite(intPart)) return null;
+
+  if (fracRaw.length > decimals) return null;
+
+  const factor = 10 ** decimals;
+  const fracPadded = fracRaw.padEnd(decimals, '0');
+  const fracPart = decimals === 0 ? 0 : Number(fracPadded);
+  if (!Number.isFinite(fracPart)) return null;
+
+  const amountMinor = intPart * factor + fracPart;
+  if (!Number.isInteger(amountMinor)) return null;
+
+  if (amountMinor < limits.minMinor || amountMinor > limits.maxMinor) {
+    return null;
+  }
+
+  return amountMinor;
+}
 
 function DonateModal() {
   const { isOpen, closeDonateModal } = useDonateModal();
   const [currency, setCurrency] = useState('usd');
+  const [customAmountMajor, setCustomAmountMajor] = useState('');
+  const [customAmountError, setCustomAmountError] = useState<string | null>(
+    null,
+  );
   const { createCheckout, isLoading, error } = useDonate();
 
   // Auto-detect currency when modal opens
   useEffect(() => {
     if (isOpen) {
       setCurrency(detectCurrencyFromLocale());
+      setCustomAmountMajor('');
+      setCustomAmountError(null);
     }
   }, [isOpen]);
 
@@ -58,12 +97,10 @@ function DonateModal() {
     [createCheckout, currency],
   );
 
-  const presetAmounts = BASE_AMOUNTS.map((amount) => ({
-    label: formatAmount(amount * 100, currency),
-    amountMinor: amount * 100,
-  }));
-
+  const presetAmounts = getDonationPresetAmounts(currency);
   const supportedCurrencies = getSupportedCurrencies();
+  const decimals = getCurrencyDecimals(currency);
+  const limits = getDonationLimits(currency);
 
   // Don't render if not in browser or portal target doesn't exist
   if (typeof window === 'undefined') {
@@ -82,7 +119,7 @@ function DonateModal() {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
             onClick={closeDonateModal}
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[9999]"
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-9999"
           />
 
           {/* Modal */}
@@ -95,7 +132,7 @@ function DonateModal() {
               duration: 0.2,
               ease: [0.4, 0, 0.2, 1],
             }}
-            className="fixed inset-0 z-[10000] flex items-center justify-center p-4 pointer-events-none"
+            className="fixed inset-0 z-10000 flex items-center justify-center p-4 pointer-events-none"
             onClick={closeDonateModal}
           >
             <div
@@ -171,6 +208,66 @@ function DonateModal() {
                     {preset.label}
                   </button>
                 ))}
+              </div>
+
+              {/* Custom amount */}
+              <div className="mb-4">
+                <label
+                  htmlFor="custom-amount"
+                  className="block text-sm font-medium text-slate-700 mb-2"
+                >
+                  Custom amount
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    id="custom-amount"
+                    value={customAmountMajor}
+                    onChange={(e) => {
+                      setCustomAmountMajor(e.target.value);
+                      setCustomAmountError(null);
+                    }}
+                    inputMode="decimal"
+                    placeholder={decimals === 0 ? '100' : '10.00'}
+                    className="flex-1 px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-slate-800"
+                    aria-describedby="custom-amount-help"
+                  />
+                  <button
+                    onClick={async () => {
+                      const amountMinor = parseAmountMajorToMinor(
+                        customAmountMajor,
+                        currency,
+                      );
+                      if (amountMinor === null) {
+                        setCustomAmountError(
+                          `Enter an amount between ${formatAmount(
+                            limits.minMinor,
+                            currency,
+                          )} and ${formatAmount(limits.maxMinor, currency)}.`,
+                        );
+                        return;
+                      }
+
+                      await handleDonate(amountMinor);
+                    }}
+                    disabled={isLoading}
+                    className="px-4 py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Donate
+                  </button>
+                </div>
+                <p
+                  id="custom-amount-help"
+                  className="mt-2 text-xs text-slate-500"
+                >
+                  Min {formatAmount(limits.minMinor, currency)} · Max{' '}
+                  {formatAmount(limits.maxMinor, currency)}
+                  {decimals === 0 ? ' · No decimals for this currency' : null}
+                </p>
+                {customAmountError && (
+                  <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+                    {customAmountError}
+                  </div>
+                )}
               </div>
 
               <p className="text-xs text-slate-500 text-center">

@@ -6,34 +6,10 @@ import {
   DonateRequestBody,
 } from '../types';
 import { jsonResponse, errorResponse, handleOptions } from '../response';
-
-const MIN_AMOUNT_MINOR = 100; // $1.00 or equivalent
-const MAX_AMOUNT_MINOR = 100000; // $1000.00 or equivalent
-
-// Stripe supported currencies
-const STRIPE_SUPPORTED_CURRENCIES = [
-  'usd',
-  'thb',
-  'eur',
-  'gbp',
-  'jpy',
-  'cad',
-  'aud',
-  'sgd',
-  'hkd',
-  'nzd',
-  'chf',
-  'sek',
-  'nok',
-  'dkk',
-  'pln',
-  'czk',
-  'inr',
-  'krw',
-  'mxn',
-  'brl',
-  'zar',
-];
+import {
+  SUPPORTED_CURRENCIES,
+  getCurrencyLimitsMinor,
+} from '../../shared/currencyRules';
 
 function createStripeClient(secretKey: string): Stripe {
   return new Stripe(secretKey, {
@@ -73,21 +49,36 @@ async function createStripeCheckoutSession(
   return session;
 }
 
-function validateAmount(amountMinor: number): boolean {
-  return (
-    typeof amountMinor === 'number' &&
-    !Number.isNaN(amountMinor) &&
-    amountMinor >= MIN_AMOUNT_MINOR &&
-    amountMinor <= MAX_AMOUNT_MINOR &&
-    Number.isInteger(amountMinor)
-  );
-}
-
 function validateCurrency(currency: string): boolean {
   return (
     typeof currency === 'string' &&
-    STRIPE_SUPPORTED_CURRENCIES.includes(currency.toLowerCase())
+    SUPPORTED_CURRENCIES.includes(
+      currency.toLowerCase() as (typeof SUPPORTED_CURRENCIES)[number],
+    )
   );
+}
+
+function validateAmount(
+  amountMinor: number,
+  currency: string,
+): { valid: boolean; error?: string } {
+  if (typeof amountMinor !== 'number' || Number.isNaN(amountMinor)) {
+    return { valid: false, error: 'Amount must be a valid number' };
+  }
+
+  if (!Number.isInteger(amountMinor)) {
+    return { valid: false, error: 'Amount must be an integer' };
+  }
+
+  const limits = getCurrencyLimitsMinor(currency);
+  if (amountMinor < limits.minMinor || amountMinor > limits.maxMinor) {
+    return {
+      valid: false,
+      error: `Amount must be between ${limits.minMinor} and ${limits.maxMinor} (in minor units)`,
+    };
+  }
+
+  return { valid: true };
 }
 
 async function handlePostDonate(request: Request, env: Env): Promise<Response> {
@@ -95,21 +86,24 @@ async function handlePostDonate(request: Request, env: Env): Promise<Response> {
     const body = (await request.json()) as DonateRequestBody;
     const { amountMinor, currency } = body;
 
-    if (!validateAmount(amountMinor)) {
+    // Validate currency first
+    if (!currency || !validateCurrency(currency)) {
       return jsonResponse<ErrorResponse>(
         {
-          error: 'Invalid amount',
-          details: `Amount must be between ${MIN_AMOUNT_MINOR} and ${MAX_AMOUNT_MINOR} (in minor units)`,
+          error: 'Invalid currency',
+          details: `Currency must be one of: ${SUPPORTED_CURRENCIES.join(', ')}`,
         },
         400,
       );
     }
 
-    if (!currency || !validateCurrency(currency)) {
+    // Validate amount with currency-specific limits
+    const amountValidation = validateAmount(amountMinor, currency);
+    if (!amountValidation.valid) {
       return jsonResponse<ErrorResponse>(
         {
-          error: 'Invalid currency',
-          details: `Currency must be one of: ${STRIPE_SUPPORTED_CURRENCIES.join(', ')}`,
+          error: 'Invalid amount',
+          details: amountValidation.error || 'Invalid amount',
         },
         400,
       );
