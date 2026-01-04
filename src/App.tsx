@@ -42,6 +42,13 @@ function App() {
         <HeaderDonateButton />
         <FloatingGarbage />
         <div className="relative z-10">
+          <div className="absolute top-8 left-8 z-30 hidden md:block">
+            <img
+              src="/rich-profile.png"
+              alt="Rich Profile"
+              className="w-32 md:w-40 rounded-2xl object-contain shadow-2xl ring-4 ring-white/50 backdrop-blur-sm"
+            />
+          </div>
           <HeroCarousel />
 
           {/* Game Section */}
