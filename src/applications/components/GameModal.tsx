@@ -1,6 +1,7 @@
 import { useRef } from 'react';
 import { motion } from 'framer-motion';
 import { IRefPhaserGame, PhaserGame } from '../../PhaserGame';
+import { GameDonateButton } from './GameDonateButton';
 import { getGameById, type GameId } from '../game/GameRegistry';
 
 interface GameModalProps {
@@ -64,6 +65,9 @@ export function GameModal({ gameId, onClose }: GameModalProps) {
       <p className="mt-3 text-center text-slate-700 text-sm">
         {game.icon} {game.description}
       </p>
+
+      {/* Donate link */}
+      <GameDonateButton />
     </motion.div>
   );
 }

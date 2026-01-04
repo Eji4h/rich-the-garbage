@@ -1,3 +1,5 @@
+import { FooterDonateButton } from './FooterDonateButton';
+
 // Constants
 const GITHUB_URL = 'https://github.com/Eji4h/rich-the-garbage';
 
@@ -82,6 +84,7 @@ export default function Footer() {
       <div className="relative z-10">
         <Divider />
         <GitHubLink />
+        <FooterDonateButton />
         <Copyright />
       </div>
     </footer>
