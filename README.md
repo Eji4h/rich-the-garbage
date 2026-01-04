@@ -1,6 +1,6 @@
 # Rich The Garbage 🗑️✨
 
-🌐 **[Live Website](https://rich-the-garbage.com/)** | 📦 **[GitHub Repository](https://github.com/Eji4h/rich-the-garbage)**
+🌐 **[Live Website](https://rich-the-garbage.com/)**
 
 A beautiful, interactive photo and video gallery built with Phaser.js, React, and TypeScript. Features a fun game component, like functionality, and a stunning UI with smooth animations.
 
@@ -45,16 +45,20 @@ To enable the donation feature, you need to configure Stripe and Cloudflare Work
    - Webhook Secret (starts with `whsec_`)
 
 2. **Create a Cloudflare KV namespace** for donations:
+
    ```bash
    wrangler kv:namespace create "DONATIONS_KV"
    ```
+
    Update `wrangler.jsonc` with the returned namespace ID.
 
 3. **Set Cloudflare Workers secrets**:
+
    ```bash
    wrangler secret put STRIPE_SECRET_KEY
    wrangler secret put STRIPE_WEBHOOK_SECRET
    ```
+
    Or set them in the Cloudflare Dashboard under Workers & Pages > Your Worker > Settings > Variables.
 
    **Note**: Success and cancel URLs are now handled internally using hash routing (`#/donate-success`, `#/donate-cancel`). No external URLs needed!
