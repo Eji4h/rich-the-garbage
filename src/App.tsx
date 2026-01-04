@@ -23,12 +23,14 @@ function App() {
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
 
+  const hashPath = hash.split('?')[0];
+
   // Handle success/cancel pages
-  if (hash === '#/donate-success') {
+  if (hashPath === '#/donate-success') {
     return <DonateSuccess />;
   }
 
-  if (hash === '#/donate-cancel') {
+  if (hashPath === '#/donate-cancel') {
     return <DonateCancel />;
   }
 

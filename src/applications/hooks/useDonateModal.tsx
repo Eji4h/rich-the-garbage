@@ -3,6 +3,7 @@ import {
   useContext,
   useState,
   useCallback,
+  useEffect,
   ReactNode,
   lazy,
   Suspense,
@@ -35,10 +36,32 @@ export function DonateModalProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const prefetchModal = useCallback(() => {
-    // Prefetch the modal chunk on hover/focus
+    // Prefetch the modal chunk (code-split) without opening it.
     if (typeof window !== 'undefined') {
       import('../components/DonateModal');
     }
+  }, []);
+
+  useEffect(() => {
+    // Prefetch + mount the modal chunk after initial render so first open is fast,
+    // without waiting for hover/focus/click.
+    if (typeof window === 'undefined') return;
+
+    let cancelled = false;
+    const timer = window.setTimeout(() => {
+      void import('../components/DonateModal')
+        .catch(() => null)
+        .finally(() => {
+          if (!cancelled) {
+            setHasBeenOpened(true);
+          }
+        });
+    }, 0);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
   }, []);
 
   return (
