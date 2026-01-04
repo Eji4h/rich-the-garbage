@@ -52,7 +52,7 @@ export class BeerServeScene extends Scene {
     Richy.preload(this);
   }
 
-  async create() {
+  create() {
     this.resetGameState();
     this.createGrid();
     this.createUI();
@@ -60,10 +60,14 @@ export class BeerServeScene extends Scene {
     this.createStartOverlay();
     this.createGameOverOverlay();
 
-    // Fetch high score from KV
-    await this.loadHighScore();
-
+    // Emit scene ready immediately - don't block on high score API call
     EventBus.emit('current-scene-ready', this);
+
+    // Load high score asynchronously without blocking scene ready
+    this.loadHighScore().catch((error) => {
+      console.error('Failed to load high score:', error);
+      this.highScore = 0;
+    });
   }
 
   update() {
