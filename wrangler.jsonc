@@ -14,6 +14,10 @@
       "binding": "SCORE_KV",
       "id": "96ebd64b7ca84fadad4a54da461a60b9",
     },
+    {
+      "binding": "DONATIONS_KV",
+      "id": "ebf05c9553ec4201b71c80350b3a0631",
+    },
   ],
   "observability": {
     "logs": {
