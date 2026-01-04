@@ -7,10 +7,15 @@ const STRIPE_APPLIED_PREFIX = 'stripe:applied:';
 const STRIPE_BY_DAY_PREFIX = 'stripe:byDay:';
 const STRIPE_BY_TYPE_PREFIX = 'stripe:byType:';
 
+const STRIPE_APPLIED_TTL_SECONDS = 60 * 60 * 24 * 30; // 30 days
+const STRIPE_PROCESSING_TTL_SECONDS = 60 * 10; // 10 minutes
+
 interface StoredStripeEvent {
   receivedAt: string;
   event: Stripe.Event;
 }
+
+type DonationDedupeKey = `pi:${string}` | `cs:${string}`;
 
 function redactPII(obj: unknown): unknown {
   if (typeof obj !== 'object' || obj === null) {
@@ -51,6 +56,44 @@ function redactPII(obj: unknown): unknown {
   return redacted;
 }
 
+function getDonationDedupeKey(event: Stripe.Event): DonationDedupeKey | null {
+  if (event.type === 'payment_intent.succeeded') {
+    const paymentIntent = event.data.object as Stripe.PaymentIntent;
+    if (paymentIntent?.id) {
+      return `pi:${paymentIntent.id}`;
+    }
+    return null;
+  }
+
+  if (event.type === 'checkout.session.completed') {
+    const session = event.data.object as Stripe.Checkout.Session;
+
+    const paymentIntent = session.payment_intent;
+    if (typeof paymentIntent === 'string' && paymentIntent) {
+      return `pi:${paymentIntent}`;
+    }
+
+    if (
+      typeof paymentIntent === 'object' &&
+      paymentIntent !== null &&
+      'id' in paymentIntent &&
+      typeof paymentIntent.id === 'string' &&
+      paymentIntent.id
+    ) {
+      return `pi:${paymentIntent.id}`;
+    }
+
+    if (session?.id) {
+      // Fallback for flows without a payment intent (or if Stripe omits it)
+      return `cs:${session.id}`;
+    }
+
+    return null;
+  }
+
+  return null;
+}
+
 async function storeEvent(
   kv: KVNamespace,
   event: Stripe.Event,
@@ -86,14 +129,9 @@ async function updateProjections(
   kv: KVNamespace,
   event: Stripe.Event,
 ): Promise<void> {
-  const eventId = event.id;
-  const appliedKey = `${STRIPE_APPLIED_PREFIX}${eventId}`;
-
-  // Check if already applied (idempotency for projections)
-  const alreadyApplied = await kv.get(appliedKey);
-  if (alreadyApplied) {
-    return; // Already applied, skip
-  }
+  const dedupeKey = getDonationDedupeKey(event);
+  const appliedKey = dedupeKey ? `${STRIPE_APPLIED_PREFIX}${dedupeKey}` : null;
+  const legacyAppliedKey = `${STRIPE_APPLIED_PREFIX}${event.id}`;
 
   // Only process donation-related events
   if (
@@ -103,8 +141,14 @@ async function updateProjections(
     return;
   }
 
+  if (!appliedKey) {
+    return;
+  }
+
   let amountMinor: number | undefined;
   let shouldProcess = false;
+  let paymentIntentId: string | undefined;
+  let checkoutSessionId: string | undefined;
 
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object as Stripe.Checkout.Session;
@@ -112,15 +156,56 @@ async function updateProjections(
       amountMinor = session.amount_total;
       shouldProcess = true;
     }
+    checkoutSessionId = session.id;
+    const paymentIntent = session.payment_intent;
+    if (typeof paymentIntent === 'string') {
+      paymentIntentId = paymentIntent;
+    } else if (paymentIntent && typeof paymentIntent === 'object') {
+      paymentIntentId =
+        'id' in paymentIntent && typeof paymentIntent.id === 'string'
+          ? paymentIntent.id
+          : undefined;
+    }
   } else if (event.type === 'payment_intent.succeeded') {
     const paymentIntent = event.data.object as Stripe.PaymentIntent;
     if (paymentIntent.status === 'succeeded') {
       amountMinor = paymentIntent.amount_received ?? paymentIntent.amount;
       shouldProcess = true;
     }
+    paymentIntentId = paymentIntent.id;
   }
 
   if (!shouldProcess || !amountMinor || amountMinor <= 0) {
+    return;
+  }
+
+  // Idempotency / concurrency guard:
+  // KV has no atomic "put if absent", so we do a best-effort claim.
+  // - If already applied/processing: return.
+  // - Otherwise: write a short-lived "processing" marker, then re-read to ensure
+  //   we are the winner before updating totals.
+  const [existingMarker, legacyMarker] = await Promise.all([
+    kv.get(appliedKey),
+    kv.get(legacyAppliedKey),
+  ]);
+  if (existingMarker || legacyMarker) {
+    return;
+  }
+
+  const token = crypto.randomUUID();
+  const processingMarker = JSON.stringify({
+    status: 'processing',
+    token,
+    dedupeKey,
+    startedAt: new Date().toISOString(),
+  });
+
+  await kv.put(appliedKey, processingMarker, {
+    expirationTtl: STRIPE_PROCESSING_TTL_SECONDS,
+  });
+
+  const confirmedMarker = await kv.get(appliedKey);
+  if (confirmedMarker !== processingMarker) {
     return;
   }
 
@@ -152,8 +237,27 @@ async function updateProjections(
 
   await kv.put(dayKey, JSON.stringify(dayTotals));
 
-  // Mark as applied
-  await kv.put(appliedKey, '1');
+  // Mark as applied (longer TTL than the processing lock)
+  const appliedValue = JSON.stringify({
+    status: 'applied',
+    appliedAt: new Date().toISOString(),
+    amountMinor,
+    eventType: event.type,
+    eventId: event.id,
+    dedupeKey,
+    paymentIntentId,
+    checkoutSessionId,
+  });
+
+  await Promise.all([
+    kv.put(appliedKey, appliedValue, {
+      expirationTtl: STRIPE_APPLIED_TTL_SECONDS,
+    }),
+    // Backward compatibility: prevent recounts for already-applied legacy markers
+    kv.put(legacyAppliedKey, appliedValue, {
+      expirationTtl: STRIPE_APPLIED_TTL_SECONDS,
+    }),
+  ]);
 }
 
 export async function handleStripeWebhook(
