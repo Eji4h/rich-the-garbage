@@ -43,8 +43,12 @@ This is a Phaser.js game project called "Rich The Garbage" that combines:
 
 ### File Organization
 
-- Game code in `src/game/`
-- React components in `src/components/`
+- Game code in `src/applications/game/`
+- React components in `src/applications/components/`
+- Custom hooks in `src/applications/hooks/`
+- Ports/adapters in `src/applications/ports/`
+- Adapters in `src/adapters/`
+- Configuration in `src/config/`
 - Worker/API code in `worker/`
 - Shared utilities in `src/utils/`
 
