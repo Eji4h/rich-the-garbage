@@ -180,15 +180,14 @@ async function updateProjections(
   }
 
   // Idempotency / concurrency guard:
-  // KV has no atomic "put if absent", so we do a best-effort claim.
-  // - If already applied/processing: return.
-  // - Otherwise: write a short-lived "processing" marker, then re-read to ensure
-  //   we are the winner before updating totals.
-  const [existingMarker, legacyMarker] = await Promise.all([
-    kv.get(appliedKey),
-    kv.get(legacyAppliedKey),
-  ]);
-  if (existingMarker || legacyMarker) {
+  // Use an atomic "claim" (put-if-absent) for the dedupe key before updating
+  // totals. This prevents double-counting if Stripe delivers the same event
+  // concurrently (e.g. retries / edge replication).
+  //
+  // Note: Cloudflare KV is eventually consistent for reads, so a read-before-write
+  // check can race. Prefer a conditional write instead.
+  const legacyMarker = await kv.get(legacyAppliedKey);
+  if (legacyMarker) {
     return;
   }
 
@@ -200,42 +199,57 @@ async function updateProjections(
     startedAt: new Date().toISOString(),
   });
 
-  await kv.put(appliedKey, processingMarker, {
+  const claimOptions = {
     expirationTtl: STRIPE_PROCESSING_TTL_SECONDS,
-  });
+    // Workers KV supports conditional writes via ifNoneMatch. @cloudflare/workers-types
+    // may lag behind, so we cast to include the field.
+    ifNoneMatch: '*',
+  } as unknown as KVNamespacePutOptions & { ifNoneMatch: '*' };
 
-  const confirmedMarker = await kv.get(appliedKey);
-  if (confirmedMarker !== processingMarker) {
-    return;
+  try {
+    await kv.put(appliedKey, processingMarker, claimOptions);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    // If the key already exists, another request has claimed/applied it.
+    if (/412|precondition/i.test(message)) {
+      return;
+    }
+    throw err;
   }
 
-  // Update totals (idempotent)
-  const totalsKey = 'donation:totals';
-  const existingTotals = await kv.get(totalsKey);
-  const totals: { count: number; amountMinor: number } = existingTotals
-    ? JSON.parse(existingTotals)
-    : { count: 0, amountMinor: 0 };
+  try {
+    // Update totals
+    const totalsKey = 'donation:totals';
+    const existingTotals = await kv.get(totalsKey);
+    const totals: { count: number; amountMinor: number } = existingTotals
+      ? JSON.parse(existingTotals)
+      : { count: 0, amountMinor: 0 };
 
-  totals.count += 1;
-  totals.amountMinor += amountMinor;
+    totals.count += 1;
+    totals.amountMinor += amountMinor;
 
-  await kv.put(totalsKey, JSON.stringify(totals));
+    await kv.put(totalsKey, JSON.stringify(totals));
 
-  // Update per-day totals
-  const dateStr = new Date(event.created * 1000)
-    .toISOString()
-    .split('T')[0]
-    .replace(/-/g, '');
-  const dayKey = `donation:byDay:${dateStr}`;
-  const existingDay = await kv.get(dayKey);
-  const dayTotals: { count: number; amountMinor: number } = existingDay
-    ? JSON.parse(existingDay)
-    : { count: 0, amountMinor: 0 };
+    // Update per-day totals
+    const dateStr = new Date(event.created * 1000)
+      .toISOString()
+      .split('T')[0]
+      .replace(/-/g, '');
+    const dayKey = `donation:byDay:${dateStr}`;
+    const existingDay = await kv.get(dayKey);
+    const dayTotals: { count: number; amountMinor: number } = existingDay
+      ? JSON.parse(existingDay)
+      : { count: 0, amountMinor: 0 };
 
-  dayTotals.count += 1;
-  dayTotals.amountMinor += amountMinor;
+    dayTotals.count += 1;
+    dayTotals.amountMinor += amountMinor;
 
-  await kv.put(dayKey, JSON.stringify(dayTotals));
+    await kv.put(dayKey, JSON.stringify(dayTotals));
+  } catch (err) {
+    // If we fail after claiming, remove the processing marker so Stripe can retry.
+    await kv.delete(appliedKey);
+    throw err;
+  }
 
   // Mark as applied (longer TTL than the processing lock)
   const appliedValue = JSON.stringify({
