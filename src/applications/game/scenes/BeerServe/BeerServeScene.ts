@@ -123,8 +123,8 @@ export class BeerServeScene extends Scene {
     });
     this.highScoreText.setDepth(10);
 
-    // Timer display
-    this.timerText = this.add.text(1004, 20, `Time: ${this.GAME_DURATION}`, {
+    // Timer display (positioned to avoid overlap with close button)
+    this.timerText = this.add.text(960, 20, `Time: ${this.GAME_DURATION}`, {
       fontSize: '32px',
       fontFamily: 'Outfit, sans-serif',
       color: '#fef3c7',
@@ -262,10 +262,10 @@ export class BeerServeScene extends Scene {
     this.gameOverOverlay.setDepth(100);
     this.gameOverOverlay.setVisible(false);
 
-    // Semi-transparent background
+    // Semi-transparent background (increased height to accommodate all elements)
     const bg = this.add.graphics();
     bg.fillStyle(0x000000, 0.8);
-    bg.fillRoundedRect(-250, -180, 500, 360, 20);
+    bg.fillRoundedRect(-250, -180, 500, 420, 20);
     this.gameOverOverlay.add(bg);
 
     // Game Over title
@@ -298,7 +298,7 @@ export class BeerServeScene extends Scene {
     this.gameOverOverlay.add(scoreValue);
 
     // High score display
-    const highScoreText = this.add.text(0, 50, 'High Score: 0', {
+    const highScoreText = this.add.text(0, 70, 'High Score: 0', {
       fontSize: '20px',
       fontFamily: 'Outfit, sans-serif',
       color: '#9ca3af',
@@ -308,7 +308,7 @@ export class BeerServeScene extends Scene {
     this.gameOverOverlay.add(highScoreText);
 
     // New record indicator (hidden by default)
-    const newRecordText = this.add.text(0, 80, '🏆 NEW RECORD! 🏆', {
+    const newRecordText = this.add.text(0, 110, '🏆 NEW RECORD! 🏆', {
       fontSize: '28px',
       fontFamily: 'Outfit, sans-serif',
       color: '#fcd34d',
@@ -322,10 +322,10 @@ export class BeerServeScene extends Scene {
     // Play Again button
     const buttonBg = this.add.graphics();
     buttonBg.fillStyle(0x22c55e, 1);
-    buttonBg.fillRoundedRect(-100, 80, 200, 60, 15);
+    buttonBg.fillRoundedRect(-100, 150, 200, 60, 15);
     this.gameOverOverlay.add(buttonBg);
 
-    const buttonText = this.add.text(0, 110, 'PLAY AGAIN', {
+    const buttonText = this.add.text(0, 180, 'PLAY AGAIN', {
       fontSize: '28px',
       fontFamily: 'Outfit, sans-serif',
       color: '#ffffff',
@@ -335,20 +335,20 @@ export class BeerServeScene extends Scene {
     this.gameOverOverlay.add(buttonText);
 
     // Make button interactive
-    const hitArea = this.add.rectangle(0, 110, 200, 60, 0x000000, 0);
+    const hitArea = this.add.rectangle(0, 180, 200, 60, 0x000000, 0);
     hitArea.setInteractive({ useHandCursor: true });
     hitArea.on('pointerdown', () => this.restartGame());
     hitArea.on('pointerover', () =>
       buttonBg
         .clear()
         .fillStyle(0x4ade80, 1)
-        .fillRoundedRect(-100, 80, 200, 60, 15),
+        .fillRoundedRect(-100, 150, 200, 60, 15),
     );
     hitArea.on('pointerout', () =>
       buttonBg
         .clear()
         .fillStyle(0x22c55e, 1)
-        .fillRoundedRect(-100, 80, 200, 60, 15),
+        .fillRoundedRect(-100, 150, 200, 60, 15),
     );
     this.gameOverOverlay.add(hitArea);
   }
