@@ -2,6 +2,10 @@ import { EventBus } from '../../EventBus';
 import { Scene } from 'phaser';
 import { beerServeScoreSingleton } from './BeerServeScoreSingleton';
 import { Richy } from './Richy';
+import {
+  getBeerServeHighScore,
+  saveBeerServeScore,
+} from '../../../../utils/beerServeScoreApi';
 
 type GameState = 'start' | 'playing' | 'gameover';
 
@@ -34,9 +38,11 @@ export class BeerServeScene extends Scene {
   // UI elements
   private scoreText!: Phaser.GameObjects.Text;
   private timerText!: Phaser.GameObjects.Text;
+  private highScoreText!: Phaser.GameObjects.Text;
   private startOverlay!: Phaser.GameObjects.Container;
   private gameOverOverlay!: Phaser.GameObjects.Container;
   private beerCursor!: Phaser.GameObjects.Text;
+  private highScore: number = 0;
 
   constructor() {
     super(BeerServeScene.SceneName);
@@ -46,13 +52,16 @@ export class BeerServeScene extends Scene {
     Richy.preload(this);
   }
 
-  create() {
+  async create() {
     this.resetGameState();
     this.createGrid();
     this.createUI();
     this.createBeerCursor();
     this.createStartOverlay();
     this.createGameOverOverlay();
+
+    // Fetch high score from KV
+    await this.loadHighScore();
 
     EventBus.emit('current-scene-ready', this);
   }
@@ -103,6 +112,16 @@ export class BeerServeScene extends Scene {
       strokeThickness: 3,
     });
     this.scoreText.setDepth(10);
+
+    // High score display (visible during gameplay)
+    this.highScoreText = this.add.text(20, 60, 'High Score: 0', {
+      fontSize: '24px',
+      fontFamily: 'Outfit, sans-serif',
+      color: '#fcd34d',
+      stroke: '#78350f',
+      strokeThickness: 2,
+    });
+    this.highScoreText.setDepth(10);
 
     // Timer display
     this.timerText = this.add.text(1004, 20, `Time: ${this.GAME_DURATION}`, {
@@ -179,10 +198,20 @@ export class BeerServeScene extends Scene {
     title.setOrigin(0.5);
     this.startOverlay.add(title);
 
+    // High score display
+    const highScoreText = this.add.text(0, -30, 'High Score: 0', {
+      fontSize: '24px',
+      fontFamily: 'Outfit, sans-serif',
+      color: '#fcd34d',
+    });
+    highScoreText.setOrigin(0.5);
+    highScoreText.setName('highScore');
+    this.startOverlay.add(highScoreText);
+
     // Instructions
     const instructions = this.add.text(
       0,
-      -10,
+      20,
       'Serve beer to Richy when he pops up!\nClick on him before he disappears.',
       {
         fontSize: '20px',
@@ -267,6 +296,28 @@ export class BeerServeScene extends Scene {
     scoreValue.setOrigin(0.5);
     scoreValue.setName('finalScore');
     this.gameOverOverlay.add(scoreValue);
+
+    // High score display
+    const highScoreText = this.add.text(0, 50, 'High Score: 0', {
+      fontSize: '20px',
+      fontFamily: 'Outfit, sans-serif',
+      color: '#9ca3af',
+    });
+    highScoreText.setOrigin(0.5);
+    highScoreText.setName('highScore');
+    this.gameOverOverlay.add(highScoreText);
+
+    // New record indicator (hidden by default)
+    const newRecordText = this.add.text(0, 80, '🏆 NEW RECORD! 🏆', {
+      fontSize: '28px',
+      fontFamily: 'Outfit, sans-serif',
+      color: '#fcd34d',
+      fontStyle: 'bold',
+    });
+    newRecordText.setOrigin(0.5);
+    newRecordText.setName('newRecord');
+    newRecordText.setVisible(false);
+    this.gameOverOverlay.add(newRecordText);
 
     // Play Again button
     const buttonBg = this.add.graphics();
@@ -414,7 +465,37 @@ export class BeerServeScene extends Scene {
     }
   }
 
-  private endGame() {
+  private async loadHighScore() {
+    try {
+      this.highScore = await getBeerServeHighScore();
+      this.updateHighScoreDisplay();
+    } catch (error) {
+      console.error('Failed to load high score:', error);
+      this.highScore = 0;
+    }
+  }
+
+  private updateHighScoreDisplay() {
+    // Update high score in main UI (during gameplay)
+    this.highScoreText.setText(`High Score: ${this.highScore}`);
+
+    // Update high score in start overlay
+    const startHighScore = this.startOverlay.getByName('highScore');
+    if (startHighScore && startHighScore instanceof Phaser.GameObjects.Text) {
+      startHighScore.setText(`High Score: ${this.highScore}`);
+    }
+
+    // Update high score in game over overlay
+    const gameOverHighScore = this.gameOverOverlay.getByName('highScore');
+    if (
+      gameOverHighScore &&
+      gameOverHighScore instanceof Phaser.GameObjects.Text
+    ) {
+      gameOverHighScore.setText(`High Score: ${this.highScore}`);
+    }
+  }
+
+  private async endGame() {
     this.gameState = 'gameover';
 
     // Stop timers
@@ -430,10 +511,46 @@ export class BeerServeScene extends Scene {
     // Hide all richies
     this.richyGrid.forEach((richy) => richy.hide());
 
+    const finalScore = this.clientScore.value;
+
+    // Save score to KV and check if it's a new record
+    let isNewRecord = false;
+    try {
+      const result = await saveBeerServeScore(finalScore);
+      this.highScore = result.highScore;
+      isNewRecord = result.isNewRecord ?? false;
+    } catch (error) {
+      console.error('Failed to save score:', error);
+      // Still show the game over screen even if save fails
+    }
+
     // Update final score in overlay
     const scoreText = this.gameOverOverlay.getByName('finalScore');
     if (scoreText && scoreText instanceof Phaser.GameObjects.Text) {
-      scoreText.setText(this.clientScore.value.toString());
+      scoreText.setText(finalScore.toString());
+    }
+
+    // Update high score in overlay
+    const highScoreText = this.gameOverOverlay.getByName('highScore');
+    if (highScoreText && highScoreText instanceof Phaser.GameObjects.Text) {
+      highScoreText.setText(`High Score: ${this.highScore}`);
+    }
+
+    // Show new record indicator if applicable
+    const newRecordText = this.gameOverOverlay.getByName('newRecord');
+    if (newRecordText && newRecordText instanceof Phaser.GameObjects.Text) {
+      newRecordText.setVisible(isNewRecord);
+      if (isNewRecord) {
+        // Animate the new record text
+        this.tweens.add({
+          targets: newRecordText,
+          scaleX: 1.2,
+          scaleY: 1.2,
+          duration: 200,
+          yoyo: true,
+          repeat: 2,
+        });
+      }
     }
 
     // Show game over overlay

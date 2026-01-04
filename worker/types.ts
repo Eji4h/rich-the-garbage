@@ -4,6 +4,7 @@ export interface Env {
   LIKES_KV: KVNamespace;
   SCORE_KV: KVNamespace;
   DONATIONS_KV: KVNamespace;
+  BEERSERVE_KV: KVNamespace;
   ASSETS: Fetcher;
   STRIPE_SECRET_KEY: string;
   STRIPE_WEBHOOK_SECRET: string;
@@ -45,4 +46,13 @@ export interface DonateRequestBody {
 
 export interface DonateResponse {
   url: string;
+}
+
+export interface BeerServeScoreResponse {
+  highScore: number;
+  isNewRecord?: boolean;
+}
+
+export interface BeerServeScoreRequestBody {
+  score: number;
 }

@@ -18,6 +18,10 @@
       "binding": "DONATIONS_KV",
       "id": "ebf05c9553ec4201b71c80350b3a0631",
     },
+    {
+      "binding": "BEERSERVE_KV",
+      "id": "",
+    },
   ],
   "observability": {
     "logs": {
