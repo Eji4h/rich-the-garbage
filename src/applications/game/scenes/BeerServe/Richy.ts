@@ -18,9 +18,9 @@ export class Richy {
 
   private readonly popUpDuration: number = 180;
   private readonly hideDuration: number = 100;
-  private readonly holeWidth: number = 90;
+  private readonly holeWidth: number = 130;
   private readonly holeHeight: number = 30;
-  private readonly spriteScale: number = 0.45;
+  private readonly spriteScale: number = 0.5;
   private readonly hiddenY: number = 150;
 
   private _visibleTime: number = 1200;
@@ -50,7 +50,7 @@ export class Richy {
     if (!scene.textures.exists(Richy.characterKey)) {
       scene.load.spritesheet(Richy.characterKey, characterSpritePath, {
         frameWidth: 256,
-        frameHeight: 256,
+        frameHeight: 512,
       });
     }
   }
@@ -108,7 +108,7 @@ export class Richy {
     this.hole.setDepth(this.row * 10 + 2);
 
     // Cover below hole (background color to hide sprite when down)
-    this.hole.fillStyle(0x78350f, 1);
+    this.hole.fillStyle(0x2c3e50, 1);
     this.hole.fillRect(
       this.x - this.holeWidth / 2 - 5,
       this.y + this.holeHeight / 2 - 5,
@@ -117,7 +117,7 @@ export class Richy {
     );
 
     // Barrel rim
-    this.hole.fillStyle(0x5d4037, 1);
+    this.hole.fillStyle(0x34495e, 1);
     this.hole.fillEllipse(
       this.x,
       this.y,
@@ -126,11 +126,11 @@ export class Richy {
     );
 
     // Barrel opening
-    this.hole.fillStyle(0x2d1810, 1);
+    this.hole.fillStyle(0x1a1a2e, 1);
     this.hole.fillEllipse(this.x, this.y, this.holeWidth, this.holeHeight);
 
     // Rim highlight
-    this.hole.lineStyle(2, 0x8b5a2b, 0.6);
+    this.hole.lineStyle(2, 0x4a5568, 0.6);
     this.hole.strokeEllipse(
       this.x,
       this.y,
