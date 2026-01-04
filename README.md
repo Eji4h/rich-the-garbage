@@ -31,6 +31,57 @@ A beautiful, interactive photo and video gallery built with Phaser.js, React, an
 
 - [Node.js](https://nodejs.org) (v18 or higher recommended)
 - [pnpm](https://pnpm.io) package manager
+- [Cloudflare account](https://dash.cloudflare.com) (for deployment)
+- [Stripe account](https://stripe.com) (for donations feature)
+
+## ⚙️ Configuration
+
+### Stripe Donation Setup
+
+To enable the donation feature, you need to configure Stripe and Cloudflare Workers:
+
+1. **Create a Stripe account** and get your API keys:
+   - Secret Key (starts with `sk_`)
+   - Webhook Secret (starts with `whsec_`)
+
+2. **Create a Cloudflare KV namespace** for donations:
+   ```bash
+   wrangler kv:namespace create "DONATIONS_KV"
+   ```
+   Update `wrangler.jsonc` with the returned namespace ID.
+
+3. **Set Cloudflare Workers secrets**:
+   ```bash
+   wrangler secret put STRIPE_SECRET_KEY
+   wrangler secret put STRIPE_WEBHOOK_SECRET
+   ```
+   Or set them in the Cloudflare Dashboard under Workers & Pages > Your Worker > Settings > Variables.
+
+   **Note**: Success and cancel URLs are now handled internally using hash routing (`#/donate-success`, `#/donate-cancel`). No external URLs needed!
+
+4. **Configure Stripe webhook**:
+   - In Stripe Dashboard, go to Developers > Webhooks
+   - Add endpoint: `https://your-domain.com/api/stripe/webhook`
+   - Select events: `checkout.session.completed`, `payment_intent.succeeded`
+   - Copy the webhook signing secret to `STRIPE_WEBHOOK_SECRET`
+
+5. **Currency Support**:
+   - Currency is **auto-detected** from the user's browser locale (e.g., `en-US` → USD, `th-TH` → THB)
+   - Users can manually select a different currency in the donation modal
+   - Supported currencies: USD, THB, EUR, GBP, JPY, CAD, AUD, SGD, and more
+   - All amounts are displayed with the correct currency symbol
+
+### Local Development
+
+For local development with Wrangler:
+
+```bash
+# Set secrets in .dev.vars file (not committed to git)
+STRIPE_SECRET_KEY=sk_test_...
+STRIPE_WEBHOOK_SECRET=whsec_...
+```
+
+**Note**: Success and cancel pages are handled via hash routing (`#/donate-success`, `#/donate-cancel`), so no URL configuration is needed.
 
 ## 🚀 Getting Started
 

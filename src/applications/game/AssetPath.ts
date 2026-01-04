@@ -1,1 +1,1 @@
-export const characterSpritePath = 'phaser/spritesheet_sitting_256_6x4.png';
+export const characterSpritePath = 'phaser/richy-sprite-1.png';

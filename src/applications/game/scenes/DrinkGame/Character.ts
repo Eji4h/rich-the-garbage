@@ -1,5 +1,5 @@
 import { characterSpritePath } from '../../AssetPath';
-import { GameScene } from './GameScene';
+import { DrinkGameScene } from './DrinkGameScene';
 
 const AnimationsKeys = {
   idle: 'idle',
@@ -13,8 +13,8 @@ export class Character {
   private _isAnimating: boolean = false;
   private characterSprite: Phaser.GameObjects.Sprite;
 
-  private readonly baseScale: number = 1.2;
-  private readonly hoverScale: number = 1.25;
+  private readonly baseScale: number = 0.5;
+  private readonly hoverScale: number = 0.55;
   private readonly hoverDuration: number = 100;
   private readonly hoverEase: string = 'Power2';
 
@@ -22,14 +22,12 @@ export class Character {
     return this._isAnimating;
   }
 
-  constructor(private readonly scene: GameScene) {
-    this.scene = scene;
-  }
+  constructor(private readonly scene: DrinkGameScene) {}
 
   preload() {
     this.scene.load.spritesheet(Character.characterKey, characterSpritePath, {
       frameWidth: 256,
-      frameHeight: 256,
+      frameHeight: 512,
     });
   }
 
@@ -37,7 +35,7 @@ export class Character {
     this.createAnimations();
     this.characterSprite = this.scene.add.sprite(
       512,
-      340,
+      314,
       Character.characterKey,
     );
     this.characterSprite.setScale(this.baseScale);
@@ -112,9 +110,9 @@ export class Character {
       key: AnimationsKeys.idle,
       frames: this.scene.anims.generateFrameNumbers(Character.characterKey, {
         start: 0,
-        end: 5,
+        end: 7,
       }),
-      frameRate: 12,
+      frameRate: 8,
       repeat: -1,
     });
 
@@ -122,10 +120,10 @@ export class Character {
     this.scene.anims.create({
       key: AnimationsKeys.drink,
       frames: this.scene.anims.generateFrameNumbers(Character.characterKey, {
-        start: 6,
-        end: 11,
+        start: 8,
+        end: 15,
       }),
-      frameRate: 18,
+      frameRate: 8,
       repeat: 0,
     });
 
@@ -133,10 +131,10 @@ export class Character {
     this.scene.anims.create({
       key: AnimationsKeys.puke,
       frames: this.scene.anims.generateFrameNumbers(Character.characterKey, {
-        start: 12,
-        end: 17,
+        start: 16,
+        end: 23,
       }),
-      frameRate: 16,
+      frameRate: 8,
       repeat: 0,
     });
 
@@ -144,10 +142,10 @@ export class Character {
     this.scene.anims.create({
       key: AnimationsKeys.puke_bin,
       frames: this.scene.anims.generateFrameNumbers(Character.characterKey, {
-        start: 18,
-        end: 23,
+        start: 24,
+        end: 30,
       }),
-      frameRate: 16,
+      frameRate: 7,
       repeat: 0,
     });
   }
