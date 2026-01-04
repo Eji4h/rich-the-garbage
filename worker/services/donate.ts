@@ -118,8 +118,8 @@ async function handlePostDonate(request: Request, env: Env): Promise<Response> {
     // Build URLs using request origin + hash routing
     const url = new URL(request.url);
     const origin = `${url.protocol}//${url.host}`;
-    const successUrl = `${origin}/#/success?session_id={CHECKOUT_SESSION_ID}`;
-    const cancelUrl = `${origin}/#/cancel`;
+    const successUrl = `${origin}/#/donate-success?session_id={CHECKOUT_SESSION_ID}`;
+    const cancelUrl = `${origin}/#/donate-cancel`;
 
     const checkoutSession = await createStripeCheckoutSession(
       amountMinor,

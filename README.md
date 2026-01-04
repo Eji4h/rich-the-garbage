@@ -57,7 +57,7 @@ To enable the donation feature, you need to configure Stripe and Cloudflare Work
    ```
    Or set them in the Cloudflare Dashboard under Workers & Pages > Your Worker > Settings > Variables.
 
-   **Note**: Success and cancel URLs are now handled internally using hash routing (`#/success`, `#/cancel`). No external URLs needed!
+   **Note**: Success and cancel URLs are now handled internally using hash routing (`#/donate-success`, `#/donate-cancel`). No external URLs needed!
 
 4. **Configure Stripe webhook**:
    - In Stripe Dashboard, go to Developers > Webhooks
@@ -81,7 +81,7 @@ STRIPE_SECRET_KEY=sk_test_...
 STRIPE_WEBHOOK_SECRET=whsec_...
 ```
 
-**Note**: Success and cancel pages are handled via hash routing (`#/success`, `#/cancel`), so no URL configuration is needed.
+**Note**: Success and cancel pages are handled via hash routing (`#/donate-success`, `#/donate-cancel`), so no URL configuration is needed.
 
 ## 🚀 Getting Started
 
