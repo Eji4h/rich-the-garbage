@@ -5,9 +5,21 @@ export function DonateSuccess() {
   const [sessionId, setSessionId] = useState<string | null>(null);
 
   useEffect(() => {
-    // Get session_id from query params
-    const params = new URLSearchParams(window.location.search);
-    const id = params.get('session_id');
+    const getSessionIdFromUrl = () => {
+      const params = new URLSearchParams(window.location.search);
+      const fromSearch = params.get('session_id');
+      if (fromSearch) return fromSearch;
+
+      // With hash routing, query params can appear after the hash:
+      // example.com/#/donate-success?session_id=xxx
+      const hash = window.location.hash ?? '';
+      const queryIndex = hash.indexOf('?');
+      if (queryIndex === -1) return null;
+      const hashQuery = hash.slice(queryIndex + 1);
+      return new URLSearchParams(hashQuery).get('session_id');
+    };
+
+    const id = getSessionIdFromUrl();
     if (id) {
       setSessionId(id);
     }
