@@ -9,7 +9,7 @@ export function DonateButton({
   variant = 'default',
   className = '',
 }: DonateButtonProps) {
-  const { openDonateModal, prefetchModal } = useDonateModal();
+  const { openDonateModal } = useDonateModal();
 
   // Variant-specific styling
   const getButtonClasses = () => {
@@ -40,8 +40,6 @@ export function DonateButton({
     <div className={`relative ${className}`}>
       <button
         onClick={openDonateModal}
-        onMouseEnter={prefetchModal}
-        onFocus={prefetchModal}
         className={getButtonClasses()}
         aria-label={variant === 'sticky' ? 'Donate' : undefined}
       >

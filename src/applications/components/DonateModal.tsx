@@ -101,6 +101,9 @@ function DonateModal() {
   const supportedCurrencies = getSupportedCurrencies();
   const decimals = getCurrencyDecimals(currency);
   const limits = getDonationLimits(currency);
+  const minAmountPlaceholder = (limits.minMinor / 10 ** decimals).toFixed(
+    decimals,
+  );
 
   // Don't render if not in browser or portal target doesn't exist
   if (typeof window === 'undefined') {
@@ -227,7 +230,7 @@ function DonateModal() {
                       setCustomAmountError(null);
                     }}
                     inputMode="decimal"
-                    placeholder={decimals === 0 ? '100' : '10.00'}
+                    placeholder={minAmountPlaceholder}
                     className="flex-1 px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-slate-800"
                     aria-describedby="custom-amount-help"
                   />
